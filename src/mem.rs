@@ -1,4 +1,4 @@
-extern crate alloc as core_alloc;
+use ::alloc as core_alloc;
 use core_alloc::boxed::Box;
 use core::ops;
 use core::ptr;

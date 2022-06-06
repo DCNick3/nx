@@ -4,7 +4,6 @@ use crate::util::PointerAndSize;
 use crate::sync;
 use core::ptr;
 
-extern crate alloc;
 use alloc::alloc::GlobalAlloc;
 pub use alloc::alloc::Layout;
 
@@ -29,7 +28,6 @@ pub trait Allocator {
     }
 }
 
-extern crate linked_list_allocator;
 use linked_list_allocator::Heap as LinkedListAllocator;
 
 impl Allocator for LinkedListAllocator {
