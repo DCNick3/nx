@@ -36,13 +36,13 @@ const CAPERROR: &'static str = "insufficient capacity";
 impl<T: Any> Error for CapacityError<T> {}
 
 impl<T> fmt::Display for CapacityError<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", CAPERROR)
     }
 }
 
 impl<T> fmt::Debug for CapacityError<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}: {}", "CapacityError", CAPERROR)
     }
 }

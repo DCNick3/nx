@@ -595,7 +595,7 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(&v[..], &[3]);
     /// assert_eq!(&u[..], &[1, 2]);
     /// ```
-    pub fn drain<R>(&mut self, range: R) -> Drain<A>
+    pub fn drain<R>(&mut self, range: R) -> Drain<'_, A>
         where R: RangeBounds<usize>
     {
         // Memory safety
@@ -622,7 +622,7 @@ impl<A: Array> ArrayVec<A> {
         self.drain_range(start, end)
     }
 
-    fn drain_range(&mut self, start: usize, end: usize) -> Drain<A>
+    fn drain_range(&mut self, start: usize, end: usize) -> Drain<'_, A>
     {
         let len = self.len();
 
@@ -881,7 +881,7 @@ impl<A: Array> fmt::Debug for IntoIter<A>
 where
     A::Item: fmt::Debug,
 {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list()
             .entries(&self.v[self.index.to_usize()..])
             .finish()
@@ -1113,7 +1113,7 @@ impl<A: Array> AsMut<[A::Item]> for ArrayVec<A> {
 }
 
 impl<A: Array> fmt::Debug for ArrayVec<A> where A::Item: fmt::Debug {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { (**self).fmt(f) }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { (**self).fmt(f) }
 }
 
 impl<A: Array> Default for ArrayVec<A> {
@@ -1189,7 +1189,7 @@ impl<'de, T: Deserialize<'de>, A: Array<Item=T>> Deserialize<'de> for ArrayVec<A
         impl<'de, T: Deserialize<'de>, A: Array<Item=T>> Visitor<'de> for ArrayVecVisitor<'de, T, A> {
             type Value = ArrayVec<A>;
 
-            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
                 write!(formatter, "an array with no more than {} items", A::CAPACITY)
             }
 

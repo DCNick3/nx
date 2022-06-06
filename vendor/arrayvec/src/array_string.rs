@@ -441,13 +441,13 @@ impl<A> AsRef<str> for ArrayString<A>
 impl<A> fmt::Debug for ArrayString<A>
     where A: Array<Item=u8> + Copy
 {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { (**self).fmt(f) }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { (**self).fmt(f) }
 }
 
 impl<A> fmt::Display for ArrayString<A>
     where A: Array<Item=u8> + Copy
 {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { (**self).fmt(f) }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { (**self).fmt(f) }
 }
 
 /// `Write` appends written data to the end of the string.
@@ -558,7 +558,7 @@ impl<'de, A> Deserialize<'de> for ArrayString<A>
         impl<'de, A: Copy + Array<Item=u8>> Visitor<'de> for ArrayStringVisitor<A> {
             type Value = ArrayString<A>;
 
-            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
                 write!(formatter, "a string no more than {} bytes long", A::CAPACITY)
             }
 
