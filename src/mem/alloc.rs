@@ -1,4 +1,4 @@
-use crate::diag::abort;
+//use crate::diag::abort;
 use crate::result::*;
 use crate::util::PointerAndSize;
 use crate::sync;
@@ -68,11 +68,11 @@ pub fn initialize(heap: PointerAndSize) {
     }
 }
 
-pub(crate) fn set_enabled(enabled: bool) {
-    unsafe {
-        G_ALLOCATOR_ENABLED = enabled;
-    }
-}
+//pub(crate) fn set_enabled(enabled: bool) {
+//    unsafe {
+//        G_ALLOCATOR_ENABLED = enabled;
+//    }
+//}
 
 pub fn is_enabled() -> bool {
     unsafe {
@@ -150,7 +150,9 @@ impl<T> Buffer<T> {
     }
 }
 
-#[alloc_error_handler]
+
+// TODO: we should definitely somehow integrate it with the std
+/*#[alloc_error_handler]
 fn alloc_error_handler(_layout: core::alloc::Layout) -> ! {
     // Disable memory allocation, this will avoid abort levels which would need to allocate memory
     set_enabled(false);
@@ -158,4 +160,4 @@ fn alloc_error_handler(_layout: core::alloc::Layout) -> ! {
     // Using SvcBreak by default since this is the safest level that can be used by any context, regardless of available mem/etc.
     // TODO: default aborting system to invoke here?
     abort::abort(abort::AbortLevel::SvcBreak(), rc::ResultOutOfMemory::make())
-}
+}*/
