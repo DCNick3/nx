@@ -2,4 +2,4 @@ pub mod rc;
 
 pub mod abort;
 
-pub mod log;
+//pub mod log;

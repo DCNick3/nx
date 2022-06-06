@@ -17,19 +17,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "logpacket"
-version = "0.1.0"
-dependencies = [
- "rustc-std-workspace-core",
-]
-
-[[package]]
 name = "nx"
 version = "0.1.0"
 dependencies = [
  "arrayvec",
  "linked_list_allocator",
- "logpacket",
  "paste",
  "rustc-std-workspace-core",
  "static_assertions",
