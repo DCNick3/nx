@@ -96,7 +96,7 @@ macro_rules! ipc_sf_define_control_interface_trait {
                 )*
 
                 fn get_sf_command_metadata_table(&self) -> $crate::ipc::sf::CommandMetadataTable {
-                    todo!()`
+                    todo!()
 //                     vec! [
 //                         $(
 //                             $crate::ipc::sf::CommandMetadata::new($rq_id, unsafe { core::mem::transmute(Self::[<sf_server_impl_ $name>] as fn(&mut Self, $crate::ipc::CommandProtocol, &mut $crate::ipc::server::ServerContext) -> $crate::result::Result<()>) }, $ver_intv)

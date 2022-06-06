@@ -3,10 +3,10 @@ pub const RESULT_MODULE: u32 = 430;
 pub const RESULT_SUBMODULE: u32 = 0;
 
 result_define_subgroup!(RESULT_MODULE, RESULT_SUBMODULE => {
-    NotImplemented: 1,
-    NotSupported: 2,
-    NotInitialized: 3,
-    Panicked: 4
+    ResultNotImplemented: 1,
+    ResultNotSupported: 2,
+    ResultNotInitialized: 3,
+    ResultPanicked: 4
 });
 
 /*

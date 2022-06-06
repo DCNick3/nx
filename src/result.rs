@@ -111,4 +111,4 @@ pub trait ResultBase {
     }
 }
 
-result_define!(Success: 0, 0);
+result_define!(ResultSuccess: 0, 0);

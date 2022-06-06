@@ -3,17 +3,15 @@
 #[macro_export]
 macro_rules! result_define {
     ($name:ident: $module:expr, $description:expr) => {
-        paste::paste! {
-            pub struct [<Result $name>];
+        pub struct $name;
 
-            impl $crate::result::ResultBase for [<Result $name>] {
-                fn get_module() -> u32 {
-                    $module
-                }
-                
-                fn get_description() -> u32 {
-                    $description
-                }
+        impl $crate::result::ResultBase for $name {
+            fn get_module() -> u32 {
+                $module
+            }
+            
+            fn get_description() -> u32 {
+                $description
             }
         }
     };

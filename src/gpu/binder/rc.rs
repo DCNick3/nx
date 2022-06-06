@@ -3,21 +3,21 @@ use crate::rc;
 pub const RESULT_SUBMODULE: u32 = 1100;
 
 result_define_subgroup!(rc::RESULT_MODULE, RESULT_SUBMODULE => {
-    ErrorCodeInvalid: 1,
-    ErrorCodePermissionDenied: 2,
-    ErrorCodeNameNotFound: 3,
-    ErrorCodeWouldBlock: 4,
-    ErrorCodeNoMemory: 5,
-    ErrorCodeAlreadyExists: 6,
-    ErrorCodeNoInit: 7,
-    ErrorCodeBadValue: 8,
-    ErrorCodeDeadObject: 9,
-    ErrorCodeInvalidOperation: 10,
-    ErrorCodeNotEnoughData: 11,
-    ErrorCodeUnknownTransaction: 12,
-    ErrorCodeBadIndex: 13,
-    ErrorCodeTimeOut: 14,
-    ErrorCodeFdsNotAllowed: 15,
-    ErrorCodeFailedTransaction: 16,
-    ErrorCodeBadType: 17
+    ResultErrorCodeInvalid: 1,
+    ResultErrorCodePermissionDenied: 2,
+    ResultErrorCodeNameNotFound: 3,
+    ResultErrorCodeWouldBlock: 4,
+    ResultErrorCodeNoMemory: 5,
+    ResultErrorCodeAlreadyExists: 6,
+    ResultErrorCodeNoInit: 7,
+    ResultErrorCodeBadValue: 8,
+    ResultErrorCodeDeadObject: 9,
+    ResultErrorCodeInvalidOperation: 10,
+    ResultErrorCodeNotEnoughData: 11,
+    ResultErrorCodeUnknownTransaction: 12,
+    ResultErrorCodeBadIndex: 13,
+    ResultErrorCodeTimeOut: 14,
+    ResultErrorCodeFdsNotAllowed: 15,
+    ResultErrorCodeFailedTransaction: 16,
+    ResultErrorCodeBadType: 17
 });

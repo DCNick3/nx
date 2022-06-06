@@ -1,10 +1,10 @@
 pub const RESULT_MODULE: u32 = 10;
 
 result_define_group!(RESULT_MODULE => {
-    InvalidHeaderSize: 202,
-    InvalidInputHeader: 211,
-    InvalidOutputHeader: 212,
-    InvalidCommandRequestId: 221,
-    InvalidInObjectCount: 235,
-    InvalidOutObjectCount: 236
+    ResultInvalidHeaderSize: 202,
+    ResultInvalidInputHeader: 211,
+    ResultInvalidOutputHeader: 212,
+    ResultInvalidCommandRequestId: 221,
+    ResultInvalidInObjectCount: 235,
+    ResultInvalidOutObjectCount: 236
 });
