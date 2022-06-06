@@ -24,8 +24,15 @@ categories = ["no-std", "rust-patterns", "development-tools::testing"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/nvzqz/static-assertions-rs"
 
+[dependencies.core]
+version = "1.0.0"
+package = "rustc-std-workspace-core"
+
+optional = true
+
 [features]
 nightly = []
+rustc-dep-of-std = ['core']
 [badges.is-it-maintained-issue-resolution]
 repository = "nvzqz/static-assertions-rs"
 

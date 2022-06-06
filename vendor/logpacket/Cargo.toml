@@ -4,4 +4,12 @@ version = "0.1.0"
 authors = ["XorTroll"]
 edition = "2018"
 
-[dependencies]
+[dependencies.core]
+version = "1.0.0"
+package = "rustc-std-workspace-core"
+
+optional = true
+
+
+[features]
+rustc-dep-of-std = ['core']

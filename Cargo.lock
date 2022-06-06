@@ -5,14 +5,23 @@ version = 3
 [[package]]
 name = "arrayvec"
 version = "0.5.2"
+dependencies = [
+ "rustc-std-workspace-core",
+]
 
 [[package]]
 name = "linked_list_allocator"
 version = "0.9.1"
+dependencies = [
+ "rustc-std-workspace-core",
+]
 
 [[package]]
 name = "logpacket"
 version = "0.1.0"
+dependencies = [
+ "rustc-std-workspace-core",
+]
 
 [[package]]
 name = "nx"
@@ -22,6 +31,7 @@ dependencies = [
  "linked_list_allocator",
  "logpacket",
  "paste",
+ "rustc-std-workspace-core",
  "static_assertions",
 ]
 
@@ -32,5 +42,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c520e05135d6e763148b6426a837e239041653ba7becd2e538c076c738025fc"
 
 [[package]]
+name = "rustc-std-workspace-core"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1956f5517128a2b6f23ab2dadf1a976f4f5b27962e7724c2bf3d45e539ec098c"
+
+[[package]]
 name = "static_assertions"
 version = "1.1.0"
+dependencies = [
+ "rustc-std-workspace-core",
+]

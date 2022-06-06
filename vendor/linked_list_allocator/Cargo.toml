@@ -32,9 +32,17 @@ search = "# Unreleased"
 version = "0.2.3"
 optional = true
 
+[dependencies.core]
+version = "1.0.0"
+package = "rustc-std-workspace-core"
+
+optional = true
+
 [features]
 alloc_ref = []
 const_mut_refs = []
 default = ["use_spin_nightly"]
 use_spin = ["spinning_top"]
 use_spin_nightly = ["use_spin", "spinning_top/nightly", "const_mut_refs"]
+
+rustc-dep-of-std = ['core']
