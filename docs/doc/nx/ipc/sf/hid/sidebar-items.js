@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["ControllerId",""],["NpadJoyDeviceType",""]],"struct":[["NpadStyleTag",""]],"trait":[["IAppletResource",""],["IHidServer",""]]});
