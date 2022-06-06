@@ -17,8 +17,10 @@
 #![feature(const_ptr_write)]
 #![feature(stdsimd)]
 #![feature(derive_default_enum)]
-#![macro_use]
 
+#![deny(unused_imports)]
+
+#![macro_use]
 use core::arch::global_asm;
 
 // Required assembly bits (those which essentially cannot/shouldn't be inlined)
