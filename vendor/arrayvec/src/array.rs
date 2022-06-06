@@ -93,9 +93,7 @@ macro_rules! fix_array_impl {
             type Item = T;
             type Index = $index_type;
             const CAPACITY: usize = $len;
-            #[doc(hidden)]
             fn as_slice(&self) -> &[Self::Item] { self }
-            #[doc(hidden)]
             fn as_mut_slice(&mut self) -> &mut [Self::Item] { self }
         }
     )
