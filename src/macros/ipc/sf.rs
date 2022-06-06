@@ -9,49 +9,50 @@ macro_rules! ipc_sf_define_interface_trait {
             );* $(;)* // Note: trick to allow last trailing ';' for proper styling
         }
     ) => {
-        paste::paste! {
+//         paste::paste! {
             pub trait $intf: $crate::ipc::sf::IObject {
                 $(
                     #[allow(unused_parens)]
                     fn $name(&mut self, $( $in_param_name: $in_param_type ),* ) -> $crate::result::Result<( $( $out_param_type ),* )>;
         
-                    #[allow(unused_assignments)]
-                    #[allow(unused_parens)]
-                    fn [<sf_server_impl_ $name>](&mut self, protocol: $crate::ipc::CommandProtocol, mut ctx: &mut $crate::ipc::server::ServerContext) -> $crate::result::Result<()> {
-                        ctx.raw_data_walker = $crate::ipc::DataWalker::new(ctx.ctx.in_params.data_offset);
-                        $( let $in_param_name = <$in_param_type as $crate::ipc::server::RequestCommandParameter<_>>::after_request_read(&mut ctx)?; )*
-        
-                        let ( $( $out_param_name ),* ) = self.$name( $( $in_param_name ),* )?;
-        
-                        ctx.raw_data_walker = $crate::ipc::DataWalker::new(core::ptr::null_mut());
-                        $( $crate::ipc::server::ResponseCommandParameter::before_response_write(&$out_param_name, &mut ctx)?; )*
-                        ctx.ctx.out_params.data_size = ctx.raw_data_walker.get_offset() as u32;
-        
-                        match protocol {
-                            $crate::ipc::CommandProtocol::Cmif => {
-                                $crate::ipc::cmif::server::write_request_command_response_on_msg_buffer(&mut ctx.ctx, $crate::result::ResultSuccess::make(), $crate::ipc::cmif::CommandType::Request);
-                            },
-                            $crate::ipc::CommandProtocol::Tipc => {
-                                $crate::ipc::tipc::server::write_request_command_response_on_msg_buffer(&mut ctx.ctx, $crate::result::ResultSuccess::make(), 16); // TODO: is this command type actually read/used/relevant?
-                            }
-                        };
-        
-                        ctx.raw_data_walker = $crate::ipc::DataWalker::new(ctx.ctx.out_params.data_offset);
-                        $( $crate::ipc::server::ResponseCommandParameter::after_response_write(&$out_param_name, &mut ctx)?; )*
-        
-                        Ok(())
-                    }
+//                     #[allow(unused_assignments)]
+//                     #[allow(unused_parens)]
+//                     fn [<sf_server_impl_ $name>](&mut self, protocol: $crate::ipc::CommandProtocol, mut ctx: &mut $crate::ipc::server::ServerContext) -> $crate::result::Result<()> {
+//                         ctx.raw_data_walker = $crate::ipc::DataWalker::new(ctx.ctx.in_params.data_offset);
+//                         $( let $in_param_name = <$in_param_type as $crate::ipc::server::RequestCommandParameter<_>>::after_request_read(&mut ctx)?; )*
+//         
+//                         let ( $( $out_param_name ),* ) = self.$name( $( $in_param_name ),* )?;
+//         
+//                         ctx.raw_data_walker = $crate::ipc::DataWalker::new(core::ptr::null_mut());
+//                         $( $crate::ipc::server::ResponseCommandParameter::before_response_write(&$out_param_name, &mut ctx)?; )*
+//                         ctx.ctx.out_params.data_size = ctx.raw_data_walker.get_offset() as u32;
+//         
+//                         match protocol {
+//                             $crate::ipc::CommandProtocol::Cmif => {
+//                                 $crate::ipc::cmif::server::write_request_command_response_on_msg_buffer(&mut ctx.ctx, $crate::result::ResultSuccess::make(), $crate::ipc::cmif::CommandType::Request);
+//                             },
+//                             $crate::ipc::CommandProtocol::Tipc => {
+//                                 $crate::ipc::tipc::server::write_request_command_response_on_msg_buffer(&mut ctx.ctx, $crate::result::ResultSuccess::make(), 16); // TODO: is this command type actually read/used/relevant?
+//                             }
+//                         };
+//         
+//                         ctx.raw_data_walker = $crate::ipc::DataWalker::new(ctx.ctx.out_params.data_offset);
+//                         $( $crate::ipc::server::ResponseCommandParameter::after_response_write(&$out_param_name, &mut ctx)?; )*
+//         
+//                         Ok(())
+//                     }
                 )*
 
                 fn get_sf_command_metadata_table(&self) -> $crate::ipc::sf::CommandMetadataTable {
-                    vec! [
-                        $(
-                            $crate::ipc::sf::CommandMetadata::new($rq_id, unsafe { core::mem::transmute(Self::[<sf_server_impl_ $name>] as fn(&mut Self, $crate::ipc::CommandProtocol, &mut $crate::ipc::server::ServerContext) -> $crate::result::Result<()>) }, $ver_intv)
-                        ),*
-                    ]
+                    todo!()
+//                     vec! [
+//                         $(
+//                             $crate::ipc::sf::CommandMetadata::new($rq_id, unsafe { core::mem::transmute(Self::[<sf_server_impl_ $name>] as fn(&mut Self, $crate::ipc::CommandProtocol, &mut $crate::ipc::server::ServerContext) -> $crate::result::Result<()>) }, $ver_intv)
+//                         ),*
+//                     ]
                 }
             }
-        }
+//         }
     };
 }
 
@@ -64,45 +65,46 @@ macro_rules! ipc_sf_define_control_interface_trait {
             );* $(;)* // Same as above
         }
     ) => {
-        paste::paste! {
+//         paste::paste! {
             pub trait $intf: $crate::ipc::sf::IObject {
                 $(
                     #[allow(unused_parens)]
                     fn $name(&mut self, $( $in_param_name: $in_param_type ),* ) -> $crate::result::Result<( $( $out_param_type ),* )>;
         
-                    #[allow(unused_assignments)]
-                    #[allow(unused_parens)]
-                    fn [<sf_server_impl_ $name>](&mut self, _protocol: $crate::ipc::CommandProtocol, mut ctx: &mut $crate::ipc::server::ServerContext) -> $crate::result::Result<()> {
-                        // TODO: tipc support, for now force cmif
-                        $crate::result_return_if!(ctx.ctx.object_info.uses_tipc_protocol(), $crate::ipc::rc::ResultInvalidProtocol);
-
-                        ctx.raw_data_walker = $crate::ipc::DataWalker::new(ctx.ctx.in_params.data_offset);
-                        $( let $in_param_name = <$in_param_type as $crate::ipc::server::RequestCommandParameter<_>>::after_request_read(&mut ctx)?; )*
-
-                        let ( $( $out_param_name ),* ) = self.$name( $( $in_param_name ),* )?;
-
-                        ctx.raw_data_walker = $crate::ipc::DataWalker::new(core::ptr::null_mut());
-                        $( $crate::ipc::server::ResponseCommandParameter::before_response_write(&$out_param_name, &mut ctx)?; )*
-                        ctx.ctx.out_params.data_size = ctx.raw_data_walker.get_offset() as u32;
-
-                        $crate::ipc::cmif::server::write_control_command_response_on_msg_buffer(&mut ctx.ctx, $crate::result::ResultSuccess::make(), $crate::ipc::cmif::CommandType::Control);
-
-                        ctx.raw_data_walker = $crate::ipc::DataWalker::new(ctx.ctx.out_params.data_offset);
-                        $( $crate::ipc::server::ResponseCommandParameter::after_response_write(&$out_param_name, &mut ctx)?; )*
-
-                        Ok(())
-                    }
+//                     #[allow(unused_assignments)]
+//                     #[allow(unused_parens)]
+//                     fn [<sf_server_impl_ $name>](&mut self, _protocol: $crate::ipc::CommandProtocol, mut ctx: &mut $crate::ipc::server::ServerContext) -> $crate::result::Result<()> {
+//                         // TODO: tipc support, for now force cmif
+//                         $crate::result_return_if!(ctx.ctx.object_info.uses_tipc_protocol(), $crate::ipc::rc::ResultInvalidProtocol);
+// 
+//                         ctx.raw_data_walker = $crate::ipc::DataWalker::new(ctx.ctx.in_params.data_offset);
+//                         $( let $in_param_name = <$in_param_type as $crate::ipc::server::RequestCommandParameter<_>>::after_request_read(&mut ctx)?; )*
+// 
+//                         let ( $( $out_param_name ),* ) = self.$name( $( $in_param_name ),* )?;
+// 
+//                         ctx.raw_data_walker = $crate::ipc::DataWalker::new(core::ptr::null_mut());
+//                         $( $crate::ipc::server::ResponseCommandParameter::before_response_write(&$out_param_name, &mut ctx)?; )*
+//                         ctx.ctx.out_params.data_size = ctx.raw_data_walker.get_offset() as u32;
+// 
+//                         $crate::ipc::cmif::server::write_control_command_response_on_msg_buffer(&mut ctx.ctx, $crate::result::ResultSuccess::make(), $crate::ipc::cmif::CommandType::Control);
+// 
+//                         ctx.raw_data_walker = $crate::ipc::DataWalker::new(ctx.ctx.out_params.data_offset);
+//                         $( $crate::ipc::server::ResponseCommandParameter::after_response_write(&$out_param_name, &mut ctx)?; )*
+// 
+//                         Ok(())
+//                     }
                 )*
 
                 fn get_sf_command_metadata_table(&self) -> $crate::ipc::sf::CommandMetadataTable {
-                    vec! [
-                        $(
-                            $crate::ipc::sf::CommandMetadata::new($rq_id, unsafe { core::mem::transmute(Self::[<sf_server_impl_ $name>] as fn(&mut Self, $crate::ipc::CommandProtocol, &mut $crate::ipc::server::ServerContext) -> $crate::result::Result<()>) }, $ver_intv)
-                        ),*
-                    ]
+                    todo!()`
+//                     vec! [
+//                         $(
+//                             $crate::ipc::sf::CommandMetadata::new($rq_id, unsafe { core::mem::transmute(Self::[<sf_server_impl_ $name>] as fn(&mut Self, $crate::ipc::CommandProtocol, &mut $crate::ipc::server::ServerContext) -> $crate::result::Result<()>) }, $ver_intv)
+//                         ),*
+//                     ]
                 }
             }
-        }
+//         }
     };
 }
 
