@@ -38,6 +38,10 @@ package = "rustc-std-workspace-core"
 
 optional = true
 
+[dependencies.compiler_builtins]
+version = "0.1.70"
+optional = true
+
 [features]
 alloc_ref = []
 const_mut_refs = []
@@ -45,4 +49,4 @@ default = ["use_spin_nightly"]
 use_spin = ["spinning_top"]
 use_spin_nightly = ["use_spin", "spinning_top/nightly", "const_mut_refs"]
 
-rustc-dep-of-std = ['core']
+rustc-dep-of-std = ['core', 'compiler_builtins']

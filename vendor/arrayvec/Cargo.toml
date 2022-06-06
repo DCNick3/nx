@@ -44,7 +44,10 @@ harness = false
 [dependencies.core]
 version = "1.0.0"
 package = "rustc-std-workspace-core"
+optional = true
 
+[dependencies.compiler_builtins]
+version = "0.1.70"
 optional = true
 
 [dependencies.serde]
@@ -69,4 +72,4 @@ default = ["std"]
 std = []
 unstable-const-fn = []
 
-rustc-dep-of-std = ['core']
+rustc-dep-of-std = ['core', 'compiler_builtins']
