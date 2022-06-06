@@ -1,10 +1,10 @@
-use crate::result::*;
+
 use crate::ipc::sf;
 use crate::mem;
 use crate::util;
 use crate::ipc::sf::applet;
 use crate::ipc::sf::dispdrv;
-use crate::version;
+
 
 pub type DisplayName = util::CString<0x40>;
 

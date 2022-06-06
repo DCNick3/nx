@@ -1,7 +1,7 @@
-use crate::result::*;
+
 use crate::ipc::sf;
 use crate::mem;
-use crate::version;
+
 
 pub type AppletResourceUserId = u64;
 

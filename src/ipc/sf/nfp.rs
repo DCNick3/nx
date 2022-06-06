@@ -1,10 +1,10 @@
-use crate::result::*;
+
 use crate::ipc::sf;
 use crate::mem;
 use crate::util;
 use crate::ipc::sf::applet;
 use crate::ipc::sf::mii;
-use crate::version;
+
 
 pub mod rc;
 
