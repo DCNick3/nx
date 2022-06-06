@@ -329,7 +329,7 @@ pub fn raw_transmute<T: Copy, U: Copy>(t: T) -> U {
     }
 }
 
-pub fn simple_panic_handler<L: Logger>(info: &panic::PanicInfo, desired_level: abort::AbortLevel) -> ! {
+pub fn simple_panic_handler<L: Logger>(info: &panic::PanicInfo<'_>, desired_level: abort::AbortLevel) -> ! {
     let thread_name = match thread::get_current_thread().name.get_str() {
         Ok(name) => name,
         _ => "<unknown>",

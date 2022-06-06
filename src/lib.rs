@@ -19,6 +19,7 @@
 #![feature(derive_default_enum)]
 
 #![deny(unused_imports)]
+#![deny(elided_lifetimes_in_paths)]
 
 #![macro_use]
 use core::arch::global_asm;

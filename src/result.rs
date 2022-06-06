@@ -55,13 +55,13 @@ impl ResultCode {
 }
 
 impl fmt::Debug for ResultCode {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> result::Result<(), fmt::Error> {
         write!(fmt, "{:#X}", self.value)
     }
 }
 
 impl fmt::Display for ResultCode {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> result::Result<(), fmt::Error> {
         write!(fmt, "{:0>4}-{:0>4}", 2000 + self.get_module(), self.get_description())
     }
 }

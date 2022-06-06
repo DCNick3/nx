@@ -30,38 +30,38 @@ impl<'a> ServerContext<'a> {
     }
 }
 
-pub type CommandFn = fn(&mut dyn IObject, CommandProtocol, &mut ServerContext) -> Result<()>;
-pub type CommandSpecificFn<T> = fn(&mut T, CommandProtocol, &mut ServerContext) -> Result<()>;
+pub type CommandFn = fn(&mut dyn IObject, CommandProtocol, &mut ServerContext<'_>) -> Result<()>;
+pub type CommandSpecificFn<T> = fn(&mut T, CommandProtocol, &mut ServerContext<'_>) -> Result<()>;
 
 pub trait RequestCommandParameter<O> {
-    fn after_request_read(ctx: &mut ServerContext) -> Result<O>;
+    fn after_request_read(ctx: &mut ServerContext<'_>) -> Result<O>;
 }
 
 pub trait ResponseCommandParameter {
-    fn before_response_write(var: &Self, ctx: &mut ServerContext) -> Result<()>;
-    fn after_response_write(var: &Self, ctx: &mut ServerContext) -> Result<()>;
+    fn before_response_write(var: &Self, ctx: &mut ServerContext<'_>) -> Result<()>;
+    fn after_response_write(var: &Self, ctx: &mut ServerContext<'_>) -> Result<()>;
 }
 
 impl<T: Copy> RequestCommandParameter<T> for T {
-    default fn after_request_read(ctx: &mut ServerContext) -> Result<Self> {
+    default fn after_request_read(ctx: &mut ServerContext<'_>) -> Result<Self> {
         Ok(ctx.raw_data_walker.advance_get())
     }
 }
 
 impl<T: Copy> ResponseCommandParameter for T {
-    default fn before_response_write(_raw: &Self, ctx: &mut ServerContext) -> Result<()> {
+    default fn before_response_write(_raw: &Self, ctx: &mut ServerContext<'_>) -> Result<()> {
         ctx.raw_data_walker.advance::<Self>();
         Ok(())
     }
 
-    default fn after_response_write(raw: &Self, ctx: &mut ServerContext) -> Result<()> {
+    default fn after_response_write(raw: &Self, ctx: &mut ServerContext<'_>) -> Result<()> {
         ctx.raw_data_walker.advance_set(*raw);
         Ok(())
     }
 }
 
 impl<const A: BufferAttribute, T> RequestCommandParameter<sf::Buffer<A, T>> for sf::Buffer<A, T> {
-    fn after_request_read(ctx: &mut ServerContext) -> Result<Self> {
+    fn after_request_read(ctx: &mut ServerContext<'_>) -> Result<Self> {
         let buf = ctx.ctx.pop_buffer(&mut ctx.raw_data_walker)?;
 
         if A.contains(BufferAttribute::Out()) && A.contains(BufferAttribute::Pointer()) {
@@ -78,23 +78,23 @@ impl<const A: BufferAttribute, T> RequestCommandParameter<sf::Buffer<A, T>> for 
 impl<const A: BufferAttribute, T> !ResponseCommandParameter for sf::Buffer<A, T> {}
 
 impl<const M: HandleMode> RequestCommandParameter<sf::Handle<M>> for sf::Handle<M> {
-    fn after_request_read(ctx: &mut ServerContext) -> Result<Self> {
+    fn after_request_read(ctx: &mut ServerContext<'_>) -> Result<Self> {
         ctx.ctx.in_params.pop_handle::<M>()
     }
 }
 
 impl<const M: HandleMode> ResponseCommandParameter for sf::Handle<M> {
-    fn before_response_write(handle: &Self, ctx: &mut ServerContext) -> Result<()> {
+    fn before_response_write(handle: &Self, ctx: &mut ServerContext<'_>) -> Result<()> {
         ctx.ctx.out_params.push_handle(handle.clone())
     }
 
-    fn after_response_write(_handle: &Self, _ctx: &mut ServerContext) -> Result<()> {
+    fn after_response_write(_handle: &Self, _ctx: &mut ServerContext<'_>) -> Result<()> {
         Ok(())
     }
 }
 
 impl RequestCommandParameter<sf::ProcessId> for sf::ProcessId {
-    fn after_request_read(ctx: &mut ServerContext) -> Result<Self> {
+    fn after_request_read(ctx: &mut ServerContext<'_>) -> Result<Self> {
         if ctx.ctx.in_params.send_process_id {
             // TODO: is this really how process ID works? (is the in raw u64 just placeholder data, is it always present...?)
             let _ = ctx.raw_data_walker.advance_get::<u64>();
@@ -109,14 +109,14 @@ impl RequestCommandParameter<sf::ProcessId> for sf::ProcessId {
 impl !ResponseCommandParameter for sf::ProcessId {}
 
 impl<S: sf::IObject + ?Sized> RequestCommandParameter<mem::Shared<S>> for mem::Shared<S> {
-    fn after_request_read(_ctx: &mut ServerContext) -> Result<Self> {
+    fn after_request_read(_ctx: &mut ServerContext<'_>) -> Result<Self> {
         // TODO: implement this (added this placeholder impl for interfaces to actually be valid)
         sf::hipc::rc::ResultUnsupportedOperation::make_err()
     }
 }
 
 impl<S: sf::IObject + ?Sized> ResponseCommandParameter for mem::Shared<S> {
-    fn before_response_write(session: &Self, ctx: &mut ServerContext) -> Result<()> {
+    fn before_response_write(session: &Self, ctx: &mut ServerContext<'_>) -> Result<()> {
         let session_copy = session.copy().to::<dyn ISessionObject>();
         if ctx.ctx.object_info.is_domain() {
             let domain_object_id = ctx.domain_table.get().allocate_id()?;
@@ -132,7 +132,7 @@ impl<S: sf::IObject + ?Sized> ResponseCommandParameter for mem::Shared<S> {
         }
     }
 
-    fn after_response_write(_session: &Self, _ctx: &mut ServerContext) -> Result<()> {
+    fn after_response_write(_session: &Self, _ctx: &mut ServerContext<'_>) -> Result<()> {
         Ok(())
     }
 }

@@ -315,7 +315,7 @@ impl CommandMetadata {
 pub trait IObject {
     fn get_command_metadata_table(&self) -> CommandMetadataTable;
 
-    fn call_self_server_command(&mut self, command_fn: server::CommandFn, protocol: CommandProtocol, ctx: &mut server::ServerContext) -> Result<()> {
+    fn call_self_server_command(&mut self, command_fn: server::CommandFn, protocol: CommandProtocol, ctx: &mut server::ServerContext<'_>) -> Result<()> {
         let self_fn: server::CommandSpecificFn<Self> = unsafe { core::mem::transmute(command_fn) };
         (self_fn)(self, protocol, ctx)
     }
