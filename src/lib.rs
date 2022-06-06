@@ -16,6 +16,7 @@
 #![feature(const_intrinsic_copy)]
 #![feature(const_ptr_write)]
 #![feature(stdsimd)]
+#![feature(derive_default_enum)]
 #![macro_use]
 
 use core::arch::global_asm;
