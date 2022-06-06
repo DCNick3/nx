@@ -21,6 +21,7 @@ rustc-dep-of-std = [
     'core',
     'alloc',
     'compiler_builtins',
+    'compiler_builtins/mem', # expose stuff like memcpy, memmove etc
     'logpacket/rustc-dep-of-std',
     'linked_list_allocator/rustc-dep-of-std',
     'arrayvec/rustc-dep-of-std',
