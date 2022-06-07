@@ -20,8 +20,11 @@ use core::arch::asm;
 
 // These functions must be implemented by any binary using this crate
 
+extern "C" {
+    fn main() -> u32; // eh, this should actually be c_int, but adding a libc dep just for this is dumb
+}
+
 extern "Rust" {
-    fn main() -> Result<()>;
     fn initialize_heap(hbl_heap: util::PointerAndSize) -> util::PointerAndSize;
 }
 
@@ -225,7 +228,10 @@ unsafe fn normal_entry(maybe_abi_cfg_entries_ptr: *const hbl::AbiConfigEntry, ma
     // TODO: extend this (init more stuff, etc.)?
 
     // Unwrap main(), which will trigger a panic if it didn't succeed
-    main().unwrap();
+    let _result = main();
+
+    // we ignore main's result rn
+    // not ideal
 
     // Successful exit by default
     exit(ResultSuccess::make());

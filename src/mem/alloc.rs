@@ -1,7 +1,7 @@
 //use crate::diag::abort;
 use crate::result::*;
-use crate::util::PointerAndSize;
 use crate::sync;
+use crate::util::PointerAndSize;
 use core::ptr;
 
 use alloc::alloc::GlobalAlloc;
@@ -34,7 +34,7 @@ impl Allocator for LinkedListAllocator {
     fn allocate(&mut self, layout: Layout) -> Result<*mut u8> {
         match self.allocate_first_fit(layout) {
             Ok(non_null_addr) => Ok(non_null_addr.as_ptr()),
-            Err(_) => rc::ResultOutOfMemory::make_err()
+            Err(_) => rc::ResultOutOfMemory::make_err(),
         }
     }
 
@@ -57,13 +57,16 @@ unsafe impl<A: Allocator> GlobalAlloc for sync::Locked<A> {
     }
 }
 
-#[global_allocator]
-static mut G_ALLOCATOR_HOLDER: sync::Locked<LinkedListAllocator> = sync::Locked::new(false, LinkedListAllocator::empty());
+// #[global_allocator]
+static mut G_ALLOCATOR_HOLDER: sync::Locked<LinkedListAllocator> =
+    sync::Locked::new(false, LinkedListAllocator::empty());
 static mut G_ALLOCATOR_ENABLED: bool = false;
 
 pub fn initialize(heap: PointerAndSize) {
     unsafe {
-        G_ALLOCATOR_HOLDER.get().init(heap.address as usize, heap.size);
+        G_ALLOCATOR_HOLDER
+            .get()
+            .init(heap.address as usize, heap.size);
         G_ALLOCATOR_ENABLED = true;
     }
 }
@@ -75,9 +78,7 @@ pub fn initialize(heap: PointerAndSize) {
 //}
 
 pub fn is_enabled() -> bool {
-    unsafe {
-        G_ALLOCATOR_ENABLED
-    }
+    unsafe { G_ALLOCATOR_ENABLED }
 }
 
 pub fn allocate(align: usize, size: usize) -> Result<*mut u8> {
@@ -95,9 +96,7 @@ pub fn release(addr: *mut u8, align: usize, size: usize) {
 }
 
 pub fn new<T>() -> Result<*mut T> {
-    unsafe {
-        G_ALLOCATOR_HOLDER.get().new::<T>()
-    }
+    unsafe { G_ALLOCATOR_HOLDER.get().new::<T>() }
 }
 
 pub fn delete<T>(t: *mut T) {
@@ -108,14 +107,14 @@ pub fn delete<T>(t: *mut T) {
 
 pub struct Buffer<T> {
     pub ptr: *mut T,
-    pub layout: Layout
+    pub layout: Layout,
 }
 
 impl<T> Buffer<T> {
     pub const fn empty() -> Self {
         Self {
             ptr: ptr::null_mut(),
-            layout: Layout::new::<u8>() // Dummy value
+            layout: Layout::new::<u8>(), // Dummy value
         }
     }
 
@@ -127,29 +126,21 @@ impl<T> Buffer<T> {
         let ptr = allocate(align, size)? as *mut T;
         Ok(Self {
             ptr,
-            layout: unsafe {
-                Layout::from_size_align_unchecked(size, align)
-            }
+            layout: unsafe { Layout::from_size_align_unchecked(size, align) },
         })
     }
 
     pub fn new_alloc<A: Allocator>(align: usize, size: usize, allocator: &mut A) -> Result<Self> {
-        let layout = unsafe {
-            Layout::from_size_align_unchecked(size, align)
-        };
+        let layout = unsafe { Layout::from_size_align_unchecked(size, align) };
         let ptr = allocator.allocate(layout)? as *mut T;
 
-        Ok(Self {
-            ptr,
-            layout
-        })
+        Ok(Self { ptr, layout })
     }
 
     pub fn release(&self) {
         release(self.ptr as *mut u8, self.layout.align(), self.layout.size());
     }
 }
-
 
 // TODO: we should definitely somehow integrate it with the std
 /*#[alloc_error_handler]
