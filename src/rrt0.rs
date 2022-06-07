@@ -1,22 +1,18 @@
+use crate::dynamic;
 use crate::dynamic::elf;
+use crate::hbl;
+use crate::mem::alloc;
 use crate::result::*;
 use crate::svc;
-use crate::mem::alloc;
-use crate::dynamic;
 use crate::svc::Handle;
 use crate::sync;
-use crate::util;
-use crate::hbl;
 use crate::thread;
-use crate::vmem;
+use crate::util;
 use crate::version;
-use crate::ipc::sf;
-use crate::service;
-use crate::service::set;
-use crate::service::set::ISystemSettingsServer;
-use core::ptr;
-use core::mem;
+use crate::vmem;
 use core::arch::asm;
+use core::mem;
+use core::ptr;
 
 // These functions must be implemented by any binary using this crate
 
@@ -35,7 +31,7 @@ pub enum ExecutableType {
     #[default]
     None,
     Nso,
-    Nro
+    Nro,
 }
 
 static mut G_EXECUTABLE_TYPE: ExecutableType = ExecutableType::None;
@@ -47,9 +43,7 @@ pub(crate) fn set_executable_type(exec_type: ExecutableType) {
 }
 
 pub fn get_executable_type() -> ExecutableType {
-    unsafe {
-        G_EXECUTABLE_TYPE
-    }
+    unsafe { G_EXECUTABLE_TYPE }
 }
 
 #[derive(Copy, Clone)]
@@ -57,7 +51,7 @@ pub fn get_executable_type() -> ExecutableType {
 pub struct ModulePath {
     pub zero: u32,
     pub path_len: u32,
-    pub path: util::CString<0x200>
+    pub path: util::CString<0x200>,
 }
 
 impl ModulePath {
@@ -65,7 +59,7 @@ impl ModulePath {
         Self {
             zero: 0,
             path_len: name.len() as u32,
-            path: util::CString::from_str(name)
+            path: util::CString::from_str(name),
         }
     }
 }
@@ -88,7 +82,7 @@ pub fn exit(rc: ResultCode) -> ! {
     unsafe {
         match G_EXIT_FN.get() {
             Some(exit_fn) => exit_fn(rc),
-            None => svc::exit_process()
+            None => svc::exit_process(),
         }
     }
 }
@@ -100,25 +94,34 @@ pub fn exit(rc: ResultCode) -> ! {
 fn initialize_version(hbl_hos_version: hbl::Version) {
     if hbl_hos_version.is_valid() {
         version::set_version(hbl_hos_version.to_version());
-    }
-    else {
-        let set_sys = service::new_service_object::<set::SystemSettingsServer>().unwrap();
-        let fw_version: set::FirmwareVersion = Default::default();
-        set_sys.get().get_firmware_version(sf::Buffer::from_var(&fw_version)).unwrap();
+    } else {
+        // let set_sys = service::new_service_object::<set::SystemSettingsServer>().unwrap();
+        // let fw_version: set::FirmwareVersion = Default::default();
+        // set_sys.get().get_firmware_version(sf::Buffer::from_var(&fw_version)).unwrap();
 
-        let version = version::Version::new(fw_version.major, fw_version.minor, fw_version.micro);
+        // let version = version::Version::new(fw_version.major, fw_version.minor, fw_version.micro);
+
+        // FIXME: A HORRIBLE HACK BECAUSE HEAP DOES NOT WORK FOR NOW
+        let version = version::Version::new(12, 1, 0);
         version::set_version(version);
     }
 }
 
-unsafe fn normal_entry(maybe_abi_cfg_entries_ptr: *const hbl::AbiConfigEntry, maybe_main_thread_handle: usize, aslr_base_address: *const u8, dyn_section: *const elf::Dyn, lr_exit_fn: ExitFn) {
+unsafe fn normal_entry(
+    maybe_abi_cfg_entries_ptr: *const hbl::AbiConfigEntry,
+    maybe_main_thread_handle: usize,
+    aslr_base_address: *const u8,
+    dyn_section: *const elf::Dyn,
+    lr_exit_fn: ExitFn,
+) {
     // First of all, relocate ourselves
     dynamic::relocate_with_dyn(aslr_base_address, dyn_section).unwrap();
-    
-    let exec_type = match !maybe_abi_cfg_entries_ptr.is_null() && (maybe_main_thread_handle == usize::MAX) {
-        true => ExecutableType::Nro,
-        false => ExecutableType::Nso
-    };
+
+    let exec_type =
+        match !maybe_abi_cfg_entries_ptr.is_null() && (maybe_main_thread_handle == usize::MAX) {
+            true => ExecutableType::Nro,
+            false => ExecutableType::Nso,
+        };
     set_executable_type(exec_type);
 
     let mut heap = util::PointerAndSize::new(ptr::null_mut(), 0);
@@ -134,67 +137,72 @@ unsafe fn normal_entry(maybe_abi_cfg_entries_ptr: *const hbl::AbiConfigEntry, ma
                     let loader_info_data = (*abi_entry).value[0] as *mut u8;
                     let loader_info_data_len = (*abi_entry).value[1] as usize;
                     if loader_info_data_len > 0 {
-                        let loader_info_slice = core::slice::from_raw_parts(loader_info_data, loader_info_data_len);
+                        let loader_info_slice =
+                            core::slice::from_raw_parts(loader_info_data, loader_info_data_len);
                         if let Ok(loader_info) = core::str::from_utf8(loader_info_slice) {
                             hbl::set_loader_info(loader_info);
                         }
                     }
                     break;
-                },
+                }
                 hbl::AbiConfigEntryKey::MainThreadHandle => {
                     main_thread_handle = (*abi_entry).value[0] as svc::Handle;
-                },
+                }
                 hbl::AbiConfigEntryKey::NextLoadPath => {
                     let next_load_path_data = (*abi_entry).value[0] as *mut u8;
-                    let next_load_path_data_len = util::str_ptr_len(next_load_path_data as *const u8);
+                    let next_load_path_data_len =
+                        util::str_ptr_len(next_load_path_data as *const u8);
                     let next_load_argv_data = (*abi_entry).value[1] as *mut u8;
-                    let next_load_argv_data_len = util::str_ptr_len(next_load_argv_data as *const u8);
-                    
-                    let next_load_path_slice = core::slice::from_raw_parts(next_load_path_data, next_load_path_data_len);
-                    let next_load_argv_slice = core::slice::from_raw_parts(next_load_argv_data, next_load_argv_data_len);
+                    let next_load_argv_data_len =
+                        util::str_ptr_len(next_load_argv_data as *const u8);
+
+                    let next_load_path_slice =
+                        core::slice::from_raw_parts(next_load_path_data, next_load_path_data_len);
+                    let next_load_argv_slice =
+                        core::slice::from_raw_parts(next_load_argv_data, next_load_argv_data_len);
                     if let Ok(next_load_path) = core::str::from_utf8(next_load_path_slice) {
                         if let Ok(next_load_argv) = core::str::from_utf8(next_load_argv_slice) {
                             hbl::set_next_load_entry_ptr(next_load_path, next_load_argv);
                         }
                     }
-                },
+                }
                 hbl::AbiConfigEntryKey::OverrideHeap => {
                     heap.address = (*abi_entry).value[0] as *mut u8;
                     heap.size = (*abi_entry).value[1] as usize;
-                },
+                }
                 hbl::AbiConfigEntryKey::OverrideService => {
                     // todo!("OverrideService");
-                },
+                }
                 hbl::AbiConfigEntryKey::Argv => {
                     // todo!("Argv");
-                },
+                }
                 hbl::AbiConfigEntryKey::SyscallAvailableHint => {
                     // todo!("SyscallAvailableHint");
-                },
+                }
                 hbl::AbiConfigEntryKey::AppletType => {
                     let applet_type: hbl::AppletType = mem::transmute((*abi_entry).value[0] as u32);
                     hbl::set_applet_type(applet_type);
-                },
+                }
                 hbl::AbiConfigEntryKey::ProcessHandle => {
                     let proc_handle = (*abi_entry).value[0] as Handle;
                     hbl::set_process_handle(proc_handle);
-                },
+                }
                 hbl::AbiConfigEntryKey::LastLoadResult => {
                     let last_load_rc = ResultCode::new((*abi_entry).value[0] as u32);
                     hbl::set_last_load_result(last_load_rc);
-                },
+                }
                 hbl::AbiConfigEntryKey::RandomSeed => {
                     let random_seed = ((*abi_entry).value[0], (*abi_entry).value[1]);
                     hbl::set_random_seed(random_seed);
-                },
+                }
                 hbl::AbiConfigEntryKey::UserIdStorage => {
                     // todo!("UserIdStorage");
-                },
+                }
                 hbl::AbiConfigEntryKey::HosVersion => {
                     let hos_version_v = (*abi_entry).value[0] as u32;
                     let is_ams_magic = (*abi_entry).value[1];
                     hos_version = hbl::Version::new(hos_version_v, is_ams_magic);
-                },
+                }
                 _ => {
                     // TODO: invalid config entries?
                 }
@@ -205,7 +213,8 @@ unsafe fn normal_entry(maybe_abi_cfg_entries_ptr: *const hbl::AbiConfigEntry, ma
 
     // Initialize the main thread object and initialize its TLS section
     // TODO: query memory for main thread stack address/size?
-    G_MAIN_THREAD = thread::Thread::new_remote(main_thread_handle, "MainThread", ptr::null_mut(), 0).unwrap();
+    G_MAIN_THREAD =
+        thread::Thread::new_remote(main_thread_handle, "MainThread", ptr::null_mut(), 0).unwrap();
     thread::set_current_thread(&mut G_MAIN_THREAD);
 
     // Initialize virtual memory
@@ -217,7 +226,7 @@ unsafe fn normal_entry(maybe_abi_cfg_entries_ptr: *const hbl::AbiConfigEntry, ma
         ExecutableType::Nso => G_EXIT_FN.set(None),
         _ => {}
     };
-    
+
     // Initialize heap and memory allocation
     heap = initialize_heap(heap);
     alloc::initialize(heap);
@@ -257,8 +266,7 @@ unsafe extern "C" fn __nx_rrt0_entry(x0: usize, x1: usize) {
         let exc_type: svc::ExceptionType = mem::transmute(x0 as u32);
         let stack_top = x1 as *mut u8;
         exception_entry(exc_type, stack_top);
-    }
-    else {
+    } else {
         // Clean BSS first
         let bss_start_addr: *mut usize;
         asm!("adr {}, __bss_start", out(reg) bss_start_addr);
@@ -284,6 +292,12 @@ unsafe extern "C" fn __nx_rrt0_entry(x0: usize, x1: usize) {
         let maybe_abi_cfg_entries_ptr = x0 as *const hbl::AbiConfigEntry;
         let maybe_main_thread_handle = x1;
 
-        normal_entry(maybe_abi_cfg_entries_ptr, maybe_main_thread_handle, aslr_base_address, dyn_start_addr, lr_exit_fn);
+        normal_entry(
+            maybe_abi_cfg_entries_ptr,
+            maybe_main_thread_handle,
+            aslr_base_address,
+            dyn_start_addr,
+            lr_exit_fn,
+        );
     }
 }
