@@ -1,10 +1,8 @@
-
 use crate::ipc::sf;
-use crate::mem;
-use crate::util;
 use crate::ipc::sf::applet;
 use crate::ipc::sf::mii;
-
+use crate::mem;
+use crate::util;
 
 pub mod rc;
 
@@ -12,7 +10,7 @@ pub mod rc;
 #[repr(C)]
 pub struct McuVersionData {
     pub version: u64,
-    pub reserved: [u8; 0x18]
+    pub reserved: [u8; 0x18],
 }
 const_assert!(core::mem::size_of::<McuVersionData>() == 0x20);
 
@@ -20,7 +18,7 @@ const_assert!(core::mem::size_of::<McuVersionData>() == 0x20);
 #[repr(C)]
 pub struct DeviceHandle {
     pub id: u32,
-    pub reserved: [u8; 4]
+    pub reserved: [u8; 4],
 }
 const_assert!(core::mem::size_of::<DeviceHandle>() == 0x8);
 
@@ -28,7 +26,7 @@ const_assert!(core::mem::size_of::<DeviceHandle>() == 0x8);
 #[repr(u32)]
 pub enum State {
     NonInitialized = 0,
-    Initialized = 1
+    Initialized = 1,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -40,13 +38,13 @@ pub enum DeviceState {
     TagRemoved = 3,
     TagMounted = 4,
     Unavailable = 5,
-    Finalized = 6
+    Finalized = 6,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 #[repr(u32)]
 pub enum ModelType {
-    Amiibo = 0
+    Amiibo = 0,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -54,7 +52,7 @@ pub enum ModelType {
 pub enum MountTarget {
     Rom = 1,
     Ram = 2,
-    All = 3
+    All = 3,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
@@ -62,7 +60,7 @@ pub enum MountTarget {
 pub struct Date {
     pub year: u16,
     pub month: u8,
-    pub day: u8
+    pub day: u8,
 }
 const_assert!(core::mem::size_of::<Date>() == 0x4);
 
@@ -74,7 +72,7 @@ pub struct TagInfo {
     pub reserved_1: [u8; 0x15],
     pub protocol: u32,
     pub tag_type: u32,
-    pub reserved_2: [u8; 0x30]
+    pub reserved_2: [u8; 0x30],
 }
 const_assert!(core::mem::size_of::<TagInfo>() == 0x58);
 
@@ -85,7 +83,7 @@ pub struct RegisterInfo {
     pub first_write_date: Date,
     pub name: util::CString<41>,
     pub unk: u8,
-    pub reserved: [u8; 0x7A]
+    pub reserved: [u8; 0x7A],
 }
 const_assert!(core::mem::size_of::<RegisterInfo>() == 0x100);
 
@@ -97,7 +95,7 @@ pub struct CommonInfo {
     pub version: u8,
     pub pad: u8,
     pub application_area_size: u32,
-    pub reserved: [u8; 0x34]
+    pub reserved: [u8; 0x34],
 }
 const_assert!(core::mem::size_of::<CommonInfo>() == 0x40);
 
@@ -109,7 +107,7 @@ pub struct ModelInfo {
     pub series: u8,
     pub model_number: u16,
     pub figure_type: u8,
-    pub reserved: [u8; 0x39]
+    pub reserved: [u8; 0x39],
 }
 const_assert!(core::mem::size_of::<ModelInfo>() == 0x40);
 
@@ -126,12 +124,13 @@ bit_enum! {
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
 #[repr(u8)]
-pub enum ConsoleFamily { // Note: unofficial name
+pub enum ConsoleFamily {
+    // Note: unofficial name
     #[default]
     Default = 0,
     NintendoWiiU = 1,
     Nintendo3DS = 2,
-    NintendoSwitch = 3
+    NintendoSwitch = 3,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -144,7 +143,7 @@ pub struct AdminInfo {
     pub unk_0x2: u8, // Always 0x2
     pub console_family: ConsoleFamily,
     pub pad: [u8; 0x7],
-    pub reserved: [u8; 0x28]
+    pub reserved: [u8; 0x28],
 }
 const_assert!(core::mem::size_of::<AdminInfo>() == 0x40);
 
@@ -155,7 +154,7 @@ pub struct RegisterInfoPrivate {
     pub first_write_date: Date,
     pub name: util::CString<41>,
     pub unk: u8,
-    pub reserved: [u8; 0x8E]
+    pub reserved: [u8; 0x8E],
 }
 const_assert!(core::mem::size_of::<RegisterInfoPrivate>() == 0x100);
 
@@ -187,7 +186,7 @@ pub struct NfpData {
     pub unk_v11: u32,
     pub maybe_reserved_3: [u8; 100],
     pub admin_info: AdminInfo,
-    pub app_area: [u8; 0xD8]
+    pub app_area: [u8; 0xD8],
 }
 const_assert!(core::mem::size_of::<NfpData>() == 0x298);
 
@@ -196,14 +195,14 @@ const_assert!(core::mem::size_of::<NfpData>() == 0x298);
 pub enum BreakType {
     Unk0 = 0,
     Unk1 = 1,
-    Unk2 = 2
+    Unk2 = 2,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 #[repr(u32)]
 pub enum WriteType {
     Unk0 = 0,
-    Unk1 = 1
+    Unk1 = 1,
 }
 
 ipc_sf_define_interface_trait! {

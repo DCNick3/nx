@@ -1,14 +1,14 @@
+use crate::fs::sf as fs_sf;
 use crate::ipc::server;
-use crate::result::*;
 use crate::ipc::sf;
-use crate::mem;
-use alloc::string::String;
 use crate::ipc::sf::fsp;
 use crate::ipc::sf::fsp::IFileSystem;
-use crate::fs::sf as fs_sf;
+use crate::mem;
+use crate::result::*;
+use alloc::string::String;
 
 pub struct FileSystem {
-    sub_dir: String
+    sub_dir: String,
 }
 
 impl FileSystem {
@@ -27,7 +27,12 @@ impl sf::IObject for FileSystem {
 }
 
 impl IFileSystem for FileSystem {
-    fn create_file(&mut self, attribute: fsp::FileAttribute, size: usize, path_buf: sf::InFixedPointerBuffer<fsp::Path>) -> Result<()> {
+    fn create_file(
+        &mut self,
+        attribute: fsp::FileAttribute,
+        size: usize,
+        path_buf: sf::InFixedPointerBuffer<fsp::Path>,
+    ) -> Result<()> {
         let path = self.make_path(&path_buf)?;
         super::create_file(path, size, attribute)
     }
@@ -41,73 +46,124 @@ impl IFileSystem for FileSystem {
         let path = self.make_path(&path_buf)?;
         super::create_directory(path)
     }
-    
+
     fn delete_directory(&mut self, path_buf: sf::InFixedPointerBuffer<fsp::Path>) -> Result<()> {
         let path = self.make_path(&path_buf)?;
         super::delete_directory(path)
     }
 
-    fn delete_directory_recursively(&mut self, path_buf: sf::InFixedPointerBuffer<fsp::Path>) -> Result<()> {
+    fn delete_directory_recursively(
+        &mut self,
+        path_buf: sf::InFixedPointerBuffer<fsp::Path>,
+    ) -> Result<()> {
         let path = self.make_path(&path_buf)?;
         super::delete_directory_recursively(path)
     }
 
-    fn rename_file(&mut self, old_path_buf: sf::InFixedPointerBuffer<fsp::Path>, new_path_buf: sf::InFixedPointerBuffer<fsp::Path>) -> Result<()> {
+    fn rename_file(
+        &mut self,
+        old_path_buf: sf::InFixedPointerBuffer<fsp::Path>,
+        new_path_buf: sf::InFixedPointerBuffer<fsp::Path>,
+    ) -> Result<()> {
         let old_path = self.make_path(&old_path_buf)?;
         let new_path = self.make_path(&new_path_buf)?;
         super::rename_file(old_path, new_path)
     }
 
-    fn rename_directory(&mut self, old_path_buf: sf::InFixedPointerBuffer<fsp::Path>, new_path_buf: sf::InFixedPointerBuffer<fsp::Path>) -> Result<()> {
+    fn rename_directory(
+        &mut self,
+        old_path_buf: sf::InFixedPointerBuffer<fsp::Path>,
+        new_path_buf: sf::InFixedPointerBuffer<fsp::Path>,
+    ) -> Result<()> {
         let old_path = self.make_path(&old_path_buf)?;
         let new_path = self.make_path(&new_path_buf)?;
         super::rename_directory(old_path, new_path)
     }
 
-    fn get_entry_type(&mut self, path_buf: sf::InFixedPointerBuffer<fsp::Path>) -> Result<fsp::DirectoryEntryType> {
+    fn get_entry_type(
+        &mut self,
+        path_buf: sf::InFixedPointerBuffer<fsp::Path>,
+    ) -> Result<fsp::DirectoryEntryType> {
         let path = self.make_path(&path_buf)?;
         super::get_entry_type(path)
     }
-    
-    fn open_file(&mut self, mode: fsp::FileOpenMode, path_buf: sf::InFixedPointerBuffer<fsp::Path>) -> Result<mem::Shared<dyn fsp::IFile>> {
+
+    fn open_file(
+        &mut self,
+        mode: fsp::FileOpenMode,
+        path_buf: sf::InFixedPointerBuffer<fsp::Path>,
+    ) -> Result<mem::Shared<dyn fsp::IFile>> {
         let path = self.make_path(&path_buf)?;
         let file_accessor = super::open_file(path, super::convert_file_open_mode_to_option(mode))?;
-        Ok(mem::Shared::new(fs_sf::File::new(file_accessor.get_object())))
+        Ok(mem::Shared::new(fs_sf::File::new(
+            file_accessor.get_object(),
+        )))
     }
 
-    fn open_directory(&mut self, mode: fsp::DirectoryOpenMode, path_buf: sf::InFixedPointerBuffer<fsp::Path>) -> Result<mem::Shared<dyn fsp::IDirectory>> {
+    fn open_directory(
+        &mut self,
+        mode: fsp::DirectoryOpenMode,
+        path_buf: sf::InFixedPointerBuffer<fsp::Path>,
+    ) -> Result<mem::Shared<dyn fsp::IDirectory>> {
         let path = self.make_path(&path_buf)?;
         let dir_accessor = super::open_directory(path, mode)?;
-        Ok(mem::Shared::new(fs_sf::Directory::new(dir_accessor.get_object())))
+        Ok(mem::Shared::new(fs_sf::Directory::new(
+            dir_accessor.get_object(),
+        )))
     }
 
     fn commit(&mut self) -> Result<()> {
         super::commit(self.sub_dir.clone())
     }
 
-    fn get_free_space_size(&mut self, path_buf: sf::InFixedPointerBuffer<fsp::Path>) -> Result<usize> {
+    fn get_free_space_size(
+        &mut self,
+        path_buf: sf::InFixedPointerBuffer<fsp::Path>,
+    ) -> Result<usize> {
         let path = self.make_path(&path_buf)?;
         super::get_free_space_size(path)
     }
 
-    fn get_total_space_size(&mut self, path_buf: sf::InFixedPointerBuffer<fsp::Path>) -> Result<usize> {
+    fn get_total_space_size(
+        &mut self,
+        path_buf: sf::InFixedPointerBuffer<fsp::Path>,
+    ) -> Result<usize> {
         let path = self.make_path(&path_buf)?;
         super::get_total_space_size(path)
     }
 
-    fn clean_directory_recursively(&mut self, path_buf: sf::InFixedPointerBuffer<fsp::Path>) -> Result<()> {
+    fn clean_directory_recursively(
+        &mut self,
+        path_buf: sf::InFixedPointerBuffer<fsp::Path>,
+    ) -> Result<()> {
         let path = self.make_path(&path_buf)?;
         super::clean_directory_recursively(path)
     }
 
-    fn get_file_time_stamp_raw(&mut self, path_buf: sf::InFixedPointerBuffer<fsp::Path>) -> Result<fsp::FileTimeStampRaw> {
+    fn get_file_time_stamp_raw(
+        &mut self,
+        path_buf: sf::InFixedPointerBuffer<fsp::Path>,
+    ) -> Result<fsp::FileTimeStampRaw> {
         let path = self.make_path(&path_buf)?;
         super::get_file_time_stamp_raw(path)
     }
 
-    fn query_entry(&mut self, path_buf: sf::InFixedPointerBuffer<fsp::Path>, query_id: fsp::QueryId, in_buf: sf::InNonSecureMapAliasBuffer<u8>, out_buf: sf::OutNonSecureMapAliasBuffer<u8>) -> Result<()> {
+    fn query_entry(
+        &mut self,
+        path_buf: sf::InFixedPointerBuffer<fsp::Path>,
+        query_id: fsp::QueryId,
+        in_buf: sf::InNonSecureMapAliasBuffer<u8>,
+        out_buf: sf::OutNonSecureMapAliasBuffer<u8>,
+    ) -> Result<()> {
         let path = self.make_path(&path_buf)?;
-        super::query_entry(path, query_id, in_buf.get_address(), in_buf.get_size(), out_buf.get_address(), out_buf.get_size())
+        super::query_entry(
+            path,
+            query_id,
+            in_buf.get_address(),
+            in_buf.get_size(),
+            out_buf.get_address(),
+            out_buf.get_size(),
+        )
     }
 }
 

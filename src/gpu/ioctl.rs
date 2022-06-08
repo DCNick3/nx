@@ -1,5 +1,5 @@
-use crate::service::nv;
 use super::*;
+use crate::service::nv;
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 #[repr(u8)]
@@ -65,7 +65,7 @@ pub struct NvMapAlloc {
     pub align: u32,
     pub kind: Kind,
     pub pad: [u8; 4],
-    pub address: usize
+    pub address: usize,
 }
 
 impl Ioctl for NvMapAlloc {
@@ -82,7 +82,7 @@ impl Ioctl for NvMapAlloc {
 #[repr(C)]
 pub struct NvMapGetId {
     pub id: u32,
-    pub handle: u32
+    pub handle: u32,
 }
 
 impl Ioctl for NvMapGetId {
@@ -99,7 +99,7 @@ impl Ioctl for NvMapGetId {
 #[repr(C)]
 pub struct NvHostCtrlSyncptWait {
     pub fence: Fence,
-    pub timeout: i32
+    pub timeout: i32,
 }
 
 impl Ioctl for NvHostCtrlSyncptWait {

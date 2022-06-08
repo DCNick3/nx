@@ -1,14 +1,14 @@
-use crate::ipc::sf::sm;
-use crate::result::*;
-use crate::ipc::sf;
 use crate::ipc::client;
-use crate::service;
+use crate::ipc::sf;
+use crate::ipc::sf::sm;
 use crate::mem;
+use crate::result::*;
+use crate::service;
 
 pub use crate::ipc::sf::applet::*;
 
 pub struct StorageAccessor {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for StorageAccessor {
@@ -40,7 +40,7 @@ impl client::IClientObject for StorageAccessor {
 }
 
 pub struct Storage {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for Storage {
@@ -64,7 +64,7 @@ impl client::IClientObject for Storage {
 }
 
 pub struct LibraryAppletAccessor {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for LibraryAppletAccessor {
@@ -96,7 +96,7 @@ impl client::IClientObject for LibraryAppletAccessor {
 }
 
 pub struct LibraryAppletCreator {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for LibraryAppletCreator {
@@ -104,7 +104,11 @@ impl sf::IObject for LibraryAppletCreator {
 }
 
 impl ILibraryAppletCreator for LibraryAppletCreator {
-    fn create_library_applet(&mut self, id: AppletId, mode: LibraryAppletMode) -> Result<mem::Shared<dyn ILibraryAppletAccessor>> {
+    fn create_library_applet(
+        &mut self,
+        id: AppletId,
+        mode: LibraryAppletMode,
+    ) -> Result<mem::Shared<dyn ILibraryAppletAccessor>> {
         ipc_client_send_request_command!([self.session.object_info; 0] (id, mode) => (library_applet_accessor: mem::Shared<LibraryAppletAccessor>))
     }
 
@@ -124,7 +128,7 @@ impl client::IClientObject for LibraryAppletCreator {
 }
 
 pub struct WindowController {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for WindowController {
@@ -148,7 +152,7 @@ impl client::IClientObject for WindowController {
 }
 
 pub struct SelfController {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for SelfController {
@@ -172,7 +176,7 @@ impl client::IClientObject for SelfController {
 }
 
 pub struct LibraryAppletProxy {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for LibraryAppletProxy {
@@ -204,7 +208,7 @@ impl client::IClientObject for LibraryAppletProxy {
 }
 
 pub struct AllSystemAppletProxiesService {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for AllSystemAppletProxiesService {
@@ -212,7 +216,12 @@ impl sf::IObject for AllSystemAppletProxiesService {
 }
 
 impl IAllSystemAppletProxiesService for AllSystemAppletProxiesService {
-    fn open_library_applet_proxy(&mut self, process_id: sf::ProcessId, self_process_handle: sf::CopyHandle, applet_attribute: sf::InMapAliasBuffer<AppletAttribute>) -> Result<mem::Shared<dyn ILibraryAppletProxy>> {
+    fn open_library_applet_proxy(
+        &mut self,
+        process_id: sf::ProcessId,
+        self_process_handle: sf::CopyHandle,
+        applet_attribute: sf::InMapAliasBuffer<AppletAttribute>,
+    ) -> Result<mem::Shared<dyn ILibraryAppletProxy>> {
         ipc_client_send_request_command!([self.session.object_info; 201] (process_id, self_process_handle, applet_attribute) => (library_applet_proxy: mem::Shared<LibraryAppletProxy>))
     }
 }

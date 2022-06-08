@@ -1,7 +1,5 @@
-
 use crate::ipc::sf;
 use crate::mem;
-
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 #[repr(u32)]
@@ -19,7 +17,7 @@ pub enum State {
     EssentialServicesSleepReady = 3,
     EssentialServicesAwake = 4,
     ShutdownReady = 5,
-    Invalid = 6
+    Invalid = 6,
 }
 
 ipc_sf_define_interface_trait! {

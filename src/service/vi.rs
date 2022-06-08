@@ -1,16 +1,16 @@
-use crate::ipc::sf::sm;
-use crate::result::*;
-use crate::ipc::sf;
 use crate::ipc::client;
-use crate::service;
+use crate::ipc::sf;
+use crate::ipc::sf::sm;
 use crate::mem;
-use crate::service::dispdrv;
+use crate::result::*;
+use crate::service;
 use crate::service::applet;
+use crate::service::dispdrv;
 
 pub use crate::ipc::sf::vi::*;
 
 pub struct ManagerDisplayService {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for ManagerDisplayService {
@@ -18,7 +18,12 @@ impl sf::IObject for ManagerDisplayService {
 }
 
 impl IManagerDisplayService for ManagerDisplayService {
-    fn create_managed_layer(&mut self, flags: LayerFlags, display_id: DisplayId, aruid: applet::AppletResourceUserId) -> Result<LayerId> {
+    fn create_managed_layer(
+        &mut self,
+        flags: LayerFlags,
+        display_id: DisplayId,
+        aruid: applet::AppletResourceUserId,
+    ) -> Result<LayerId> {
         ipc_client_send_request_command!([self.session.object_info; 2010] (flags, display_id, aruid) => (id: LayerId))
     }
 
@@ -38,7 +43,7 @@ impl client::IClientObject for ManagerDisplayService {
 }
 
 pub struct SystemDisplayService {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for SystemDisplayService {
@@ -82,7 +87,7 @@ impl client::IClientObject for SystemDisplayService {
 }
 
 pub struct ApplicationDisplayService {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for ApplicationDisplayService {
@@ -110,11 +115,22 @@ impl IApplicationDisplayService for ApplicationDisplayService {
         ipc_client_send_request_command!([self.session.object_info; 1020] (display_id) => ())
     }
 
-    fn open_layer(&mut self, name: DisplayName, id: LayerId, aruid: sf::ProcessId, out_native_window: sf::OutMapAliasBuffer<u8>) -> Result<usize> {
+    fn open_layer(
+        &mut self,
+        name: DisplayName,
+        id: LayerId,
+        aruid: sf::ProcessId,
+        out_native_window: sf::OutMapAliasBuffer<u8>,
+    ) -> Result<usize> {
         ipc_client_send_request_command!([self.session.object_info; 2020] (name, id, aruid, out_native_window) => (native_window_size: usize))
     }
 
-    fn create_stray_layer(&mut self, flags: LayerFlags, display_id: DisplayId, out_native_window: sf::OutMapAliasBuffer<u8>) -> Result<(LayerId, usize)> {
+    fn create_stray_layer(
+        &mut self,
+        flags: LayerFlags,
+        display_id: DisplayId,
+        out_native_window: sf::OutMapAliasBuffer<u8>,
+    ) -> Result<(LayerId, usize)> {
         ipc_client_send_request_command!([self.session.object_info; 2030] (flags, display_id, out_native_window) => (id: LayerId, native_window_size: usize))
     }
 
@@ -138,7 +154,7 @@ impl client::IClientObject for ApplicationDisplayService {
 }
 
 pub struct ApplicationRootService {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for ApplicationRootService {
@@ -146,7 +162,10 @@ impl sf::IObject for ApplicationRootService {
 }
 
 impl IApplicationRootService for ApplicationRootService {
-    fn get_display_service(&mut self, mode: DisplayServiceMode) -> Result<mem::Shared<dyn IApplicationDisplayService>> {
+    fn get_display_service(
+        &mut self,
+        mode: DisplayServiceMode,
+    ) -> Result<mem::Shared<dyn IApplicationDisplayService>> {
         ipc_client_send_request_command!([self.session.object_info; 0] (mode) => (display_service: mem::Shared<ApplicationDisplayService>))
     }
 }
@@ -176,7 +195,7 @@ impl service::IService for ApplicationRootService {
 }
 
 pub struct SystemRootService {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for SystemRootService {
@@ -184,7 +203,10 @@ impl sf::IObject for SystemRootService {
 }
 
 impl ISystemRootService for SystemRootService {
-    fn get_display_service(&mut self, mode: DisplayServiceMode) -> Result<mem::Shared<dyn IApplicationDisplayService>> {
+    fn get_display_service(
+        &mut self,
+        mode: DisplayServiceMode,
+    ) -> Result<mem::Shared<dyn IApplicationDisplayService>> {
         ipc_client_send_request_command!([self.session.object_info; 1] (mode) => (display_service: mem::Shared<ApplicationDisplayService>))
     }
 }
@@ -214,7 +236,7 @@ impl service::IService for SystemRootService {
 }
 
 pub struct ManagerRootService {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for ManagerRootService {
@@ -222,7 +244,10 @@ impl sf::IObject for ManagerRootService {
 }
 
 impl IManagerRootService for ManagerRootService {
-    fn get_display_service(&mut self, mode: DisplayServiceMode) -> Result<mem::Shared<dyn IApplicationDisplayService>> {
+    fn get_display_service(
+        &mut self,
+        mode: DisplayServiceMode,
+    ) -> Result<mem::Shared<dyn IApplicationDisplayService>> {
         ipc_client_send_request_command!([self.session.object_info; 2] (mode) => (display_service: mem::Shared<ApplicationDisplayService>))
     }
 }

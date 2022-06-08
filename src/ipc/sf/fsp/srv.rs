@@ -1,7 +1,5 @@
-
 use crate::ipc::sf;
 use crate::mem;
-
 
 ipc_sf_define_interface_trait! {
     trait IFileSystemProxy {

@@ -1,8 +1,6 @@
-
 use crate::ipc::sf;
 use crate::mem;
 use crate::util;
-
 
 pub mod rc;
 
@@ -48,7 +46,7 @@ bit_enum! {
 pub enum DirectoryEntryType {
     #[default]
     Directory = 0,
-    File = 1
+    File = 1,
 }
 
 pub type Path = util::CString<0x301>;
@@ -61,7 +59,7 @@ pub struct DirectoryEntry {
     pub pad: [u8; 2],
     pub entry_type: DirectoryEntryType,
     pub pad_2: [u8; 3],
-    pub file_size: usize
+    pub file_size: usize,
 }
 const_assert!(core::mem::size_of::<DirectoryEntry>() == 0x310);
 
@@ -72,7 +70,7 @@ pub struct FileTimeStampRaw {
     pub modify: i64,
     pub access: i64,
     pub is_local_time: bool,
-    pub pad: [u8; 7]
+    pub pad: [u8; 7],
 }
 const_assert!(core::mem::size_of::<FileTimeStampRaw>() == 0x20);
 
@@ -82,7 +80,7 @@ pub enum QueryId {
     SetConcatenationFileAttribute = 0,
     UpdateMac = 1,
     IsSignedSystemPartitionOnSdCardValid = 2,
-    QueryUnpreparedFileInformation = 3
+    QueryUnpreparedFileInformation = 3,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
@@ -91,7 +89,7 @@ pub struct FileQueryRangeInfo {
     pub aes_ctr_key_type: u32,
     pub speed_emulation_type: u32,
     pub reserved_1: [u8; 0x20],
-    pub reserved_2: [u8; 0x18]
+    pub reserved_2: [u8; 0x18],
 }
 const_assert!(core::mem::size_of::<FileQueryRangeInfo>() == 0x40);
 
@@ -105,7 +103,7 @@ pub enum OperationId {
     QueryUnpreparedRange = 4,
     QueryLazyLoadCompletionRate = 5,
     SetLazyLoadPriority = 6,
-    ReadLazyLoadFileForciblyForDebug = 10001
+    ReadLazyLoadFileForciblyForDebug = 10001,
 }
 
 ipc_sf_define_interface_trait! {

@@ -4,8 +4,7 @@ use crate::svc;
 #[repr(u64)]
 pub enum FunctionId {
     Invalid = 0,
-    GenerateRandomBytes = 0xC3000006
-    // TODO: more
+    GenerateRandomBytes = 0xC3000006, // TODO: more
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -18,7 +17,10 @@ const_assert!(core::mem::size_of::<Input>() == 0x40);
 
 impl Input {
     pub const fn new(function_id: FunctionId) -> Self {
-        Self { function_id, arguments: [0; 7] }
+        Self {
+            function_id,
+            arguments: [0; 7],
+        }
     }
 }
 
@@ -32,7 +34,7 @@ pub enum Result {
     InProgress = 3,
     NoAsyncOperation = 4,
     InvalidAsyncOperation = 5,
-    NotPermitted = 6
+    NotPermitted = 6,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -46,21 +48,17 @@ const_assert!(core::mem::size_of::<Output>() == core::mem::size_of::<Input>());
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
 #[repr(C)]
 pub struct Arguments {
-    pub arguments: [u64; 8]
+    pub arguments: [u64; 8],
 }
 const_assert!(core::mem::size_of::<Arguments>() == core::mem::size_of::<Output>());
 
 impl Arguments {
     pub fn from_input(input: Input) -> Self {
-        unsafe {
-            core::mem::transmute(input)
-        }
+        unsafe { core::mem::transmute(input) }
     }
 
     pub fn to_output(self) -> Output {
-        unsafe {
-            core::mem::transmute(self)
-        }
+        unsafe { core::mem::transmute(self) }
     }
 }
 

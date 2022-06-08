@@ -1,6 +1,5 @@
-use crate::{util};
 use crate::ipc::sf;
-
+use crate::util;
 
 pub mod mitm;
 
@@ -10,7 +9,7 @@ pub mod rc;
 #[repr(C)]
 pub union ServiceName {
     pub value: u64,
-    pub name: util::CString<0x8>
+    pub name: util::CString<0x8>,
 }
 const_assert!(core::mem::size_of::<ServiceName>() == 0x8);
 
@@ -20,7 +19,7 @@ impl ServiceName {
     }
 
     pub const fn new(name: &str) -> Self {
-        let mut raw_name: [u8; 8] =  [0; 8];
+        let mut raw_name: [u8; 8] = [0; 8];
 
         // TODO: make this prettier, like a proper for-loop?
         let name_bytes = name.as_bytes();
@@ -49,7 +48,9 @@ impl ServiceName {
             raw_name[7] = name_bytes[7];
         }
 
-        Self { name: util::CString::from_raw(raw_name) }
+        Self {
+            name: util::CString::from_raw(raw_name),
+        }
     }
 
     pub const fn empty() -> Self {
@@ -57,25 +58,19 @@ impl ServiceName {
     }
 
     pub const fn is_empty(&self) -> bool {
-        unsafe {
-            self.value == 0
-        }
+        unsafe { self.value == 0 }
     }
 }
 
 impl PartialEq for ServiceName {
     fn eq(&self, other: &Self) -> bool {
-        unsafe {
-            self.value == other.value
-        }
+        unsafe { self.value == other.value }
     }
 }
 
 impl core::fmt::Debug for ServiceName {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        unsafe {
-            self.name.fmt(f)
-        }
+        unsafe { self.name.fmt(f) }
     }
 }
 

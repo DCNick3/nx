@@ -1,7 +1,5 @@
-
 use crate::ipc::sf;
 use crate::mem;
-
 
 bit_enum! {
     LogDestination (u32) {

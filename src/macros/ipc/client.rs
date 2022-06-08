@@ -8,7 +8,7 @@ macro_rules! ipc_client_send_request_command {
         let mut walker = $crate::ipc::DataWalker::new(core::ptr::null_mut());
         $( $crate::ipc::client::RequestCommandParameter::before_request_write(&$in_param, &mut walker, &mut ctx)?; )*
         ctx.in_params.data_size = walker.get_offset() as u32;
-        
+
         match $session.protocol {
             $crate::ipc::CommandProtocol::Cmif => $crate::ipc::cmif::client::write_request_command_on_msg_buffer(&mut ctx, Some($rq_id), $crate::ipc::cmif::DomainCommandType::SendMessage),
             $crate::ipc::CommandProtocol::Tipc => $crate::ipc::tipc::client::write_request_command_on_msg_buffer(&mut ctx, $rq_id)
@@ -41,7 +41,7 @@ macro_rules! ipc_client_send_control_command {
         let mut walker = $crate::ipc::DataWalker::new(core::ptr::null_mut());
         $( $crate::ipc::client::RequestCommandParameter::before_request_write(&$in_param, &mut walker, &mut ctx)?; )*
         ctx.in_params.data_size = walker.get_offset() as u32;
-        
+
         $crate::ipc::cmif::client::write_control_command_on_msg_buffer(&mut ctx, $rq_id);
 
         walker.reset_with(ctx.in_params.data_offset);

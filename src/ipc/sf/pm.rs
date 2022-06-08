@@ -1,6 +1,3 @@
-
-
-
 ipc_sf_define_interface_trait! {
     trait IInformationInterface {
         get_program_id [0, version::VersionInterval::all()]: (process_id: u64) => (program_id: u64);

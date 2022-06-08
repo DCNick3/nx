@@ -1,14 +1,14 @@
-use crate::ipc::sf::sm;
-use crate::result::*;
-use crate::ipc::sf;
 use crate::ipc::client;
-use crate::service;
+use crate::ipc::sf;
+use crate::ipc::sf::sm;
 use crate::mem;
+use crate::result::*;
+use crate::service;
 
 pub use crate::ipc::sf::psc::*;
 
 pub struct PmModule {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for PmModule {
@@ -16,7 +16,11 @@ impl sf::IObject for PmModule {
 }
 
 impl IPmModule for PmModule {
-    fn initialize(&mut self, id: ModuleId, dependencies: sf::InMapAliasBuffer<ModuleId>) -> Result<sf::CopyHandle> {
+    fn initialize(
+        &mut self,
+        id: ModuleId,
+        dependencies: sf::InMapAliasBuffer<ModuleId>,
+    ) -> Result<sf::CopyHandle> {
         ipc_client_send_request_command!([self.session.object_info; 0] (id, dependencies) => (event_handle: sf::CopyHandle))
     }
 
@@ -48,7 +52,7 @@ impl client::IClientObject for PmModule {
 }
 
 pub struct PmService {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for PmService {

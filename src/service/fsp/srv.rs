@@ -1,14 +1,14 @@
-use crate::ipc::sf::sm;
-use crate::result::*;
-use crate::ipc::sf;
 use crate::ipc::client;
-use crate::service;
+use crate::ipc::sf;
+use crate::ipc::sf::sm;
 use crate::mem;
+use crate::result::*;
+use crate::service;
 
 pub use crate::ipc::sf::fsp::srv::*;
 
 pub struct FileSystemProxy {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for FileSystemProxy {

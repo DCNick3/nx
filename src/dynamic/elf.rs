@@ -26,7 +26,7 @@ pub enum Tag {
     FiniArray = 26,
     InitArraySize = 27,
     FiniArraySize = 28,
-    RelaCount = 0x6FFFFFF9
+    RelaCount = 0x6FFFFFF9,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -35,7 +35,7 @@ pub enum RelocationType {
     AArch64Abs64 = 257,
     AArch64GlobDat = 1025,
     AArch64JumpSlot = 1026,
-    AArch64Relative = 1027
+    AArch64Relative = 1027,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
@@ -50,7 +50,7 @@ impl Dyn {
         unsafe {
             let mut found: *const u64 = ptr::null();
             let mut self_ptr = self as *const Self;
-        
+
             while (*self_ptr).tag != Tag::Invalid {
                 if (*self_ptr).tag == tag {
                     result_return_unless!(found.is_null(), rc::ResultDuplicatedDtEntry);

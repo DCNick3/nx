@@ -1,14 +1,14 @@
-use crate::ipc::sf::sm;
-use crate::result::*;
-use crate::ipc::sf;
 use crate::ipc::client;
-use crate::service;
+use crate::ipc::sf;
+use crate::ipc::sf::sm;
 use crate::mem;
+use crate::result::*;
+use crate::service;
 
 pub use crate::ipc::sf::lm::*;
 
 pub struct Logger {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for Logger {
@@ -36,7 +36,7 @@ impl client::IClientObject for Logger {
 }
 
 pub struct LogService {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for LogService {

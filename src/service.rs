@@ -1,8 +1,8 @@
 use crate::ipc::client;
 use crate::ipc::sf;
 use crate::mem;
-use crate::svc;
 use crate::result::*;
+use crate::svc;
 
 pub mod sm;
 use crate::service::sm::IUserInterface;

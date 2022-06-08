@@ -1,34 +1,37 @@
-use crate::result::*;
-use crate::thread;
 use crate::diag::abort;
 use crate::diag::log;
 use crate::diag::log::Logger;
+use crate::result::*;
+use crate::thread;
 use alloc::string::String;
-use core::str;
-use core::ptr;
 use core::fmt;
 use core::panic;
+use core::ptr;
+use core::str;
 
 pub mod rc;
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
 #[repr(C)]
 pub struct Uuid {
-    pub uuid: [u8; 0x10]
+    pub uuid: [u8; 0x10],
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 #[repr(C)]
 pub struct PointerAndSize {
     pub address: *mut u8,
-    pub size: usize
+    pub size: usize,
 }
 
 impl PointerAndSize {
     pub const fn empty() -> Self {
-        Self { address: ptr::null_mut(), size: 0 }
+        Self {
+            address: ptr::null_mut(),
+            size: 0,
+        }
     }
-    
+
     pub const fn new(address: *mut u8, size: usize) -> Self {
         Self { address, size }
     }
@@ -42,8 +45,7 @@ const fn const_usize_min(a: usize, b: usize) -> usize {
     // TODO: const min traits
     if a > b {
         b
-    }
-    else {
+    } else {
         a
     }
 }
@@ -51,7 +53,7 @@ const fn const_usize_min(a: usize, b: usize) -> usize {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct CString<const S: usize> {
-    pub c_str: [u8; S]
+    pub c_str: [u8; S],
 }
 
 impl<const S: usize> fmt::Debug for CString<S> {
@@ -105,16 +107,24 @@ impl<const S: usize> CString<S> {
         unsafe {
             ptr::write_bytes(ptr, 0, ptr_len);
             if !string.is_empty() {
-                ptr::copy(string.as_ptr(), ptr, const_usize_min(string.len(), ptr_len - 1));
+                ptr::copy(
+                    string.as_ptr(),
+                    ptr,
+                    const_usize_min(string.len(), ptr_len - 1),
+                );
             }
         }
     }
-    
+
     fn copy_string_to(string: String, ptr: *mut u8, ptr_len: usize) {
         unsafe {
             ptr::write_bytes(ptr, 0, ptr_len);
             if !string.is_empty() {
-                ptr::copy(string.as_ptr(), ptr, core::cmp::min(ptr_len - 1, string.len()));
+                ptr::copy(
+                    string.as_ptr(),
+                    ptr,
+                    core::cmp::min(ptr_len - 1, string.len()),
+                );
             }
         }
     }
@@ -122,17 +132,16 @@ impl<const S: usize> CString<S> {
     fn read_str_from(ptr: *const u8, str_len: usize) -> Result<&'static str> {
         if str_len == 0 {
             Ok("")
-        }
-        else {
+        } else {
             unsafe {
                 match core::str::from_utf8(core::slice::from_raw_parts(ptr, str_len)) {
                     Ok(name) => Ok(name.trim_end_matches('\0')),
-                    Err(_) => rc::ResultInvalidUtf8Conversion::make_err()
+                    Err(_) => rc::ResultInvalidUtf8Conversion::make_err(),
                 }
             }
         }
     }
-    
+
     fn read_string_from(ptr: *const u8, str_len: usize) -> Result<String> {
         Ok(String::from(Self::read_str_from(ptr, str_len)?))
     }
@@ -167,15 +176,14 @@ impl<const S: usize> CString<S> {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct CString16<const S: usize> {
-    pub c_str: [u16; S]
+    pub c_str: [u16; S],
 }
 
 impl<const S: usize> fmt::Debug for CString16<S> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Ok(string) = self.get_string() {
             write!(f, "{}", string)
-        }
-        else {
+        } else {
             write!(f, "<empty>")
         }
     }
@@ -238,7 +246,7 @@ impl<const S: usize> CString16<S> {
         }
         Ok(())
     }
-    
+
     fn read_string_from(ptr: *const u16, str_len: usize) -> Result<String> {
         let mut string = String::new();
         if str_len > 0 {
@@ -247,8 +255,7 @@ impl<const S: usize> CString16<S> {
                 for ch_v in core::char::decode_utf16(tmp_slice.iter().cloned()) {
                     if let Ok(ch) = ch_v {
                         string.push(ch);
-                    }
-                    else {
+                    } else {
                         break;
                     }
                 }
@@ -322,14 +329,17 @@ pub fn raw_transmute<T: Copy, U: Copy>(t: T) -> U {
     unsafe {
         union RawTransmuteUnion<T: Copy, U: Copy> {
             t: T,
-            u: U
+            u: U,
         }
         let tmp = RawTransmuteUnion::<T, U> { t };
         tmp.u
     }
 }
 
-pub fn simple_panic_handler<L: Logger>(info: &panic::PanicInfo<'_>, desired_level: abort::AbortLevel) -> ! {
+pub fn simple_panic_handler<L: Logger>(
+    info: &panic::PanicInfo<'_>,
+    desired_level: abort::AbortLevel,
+) -> ! {
     let thread_name = match thread::get_current_thread().name.get_str() {
         Ok(name) => name,
         _ => "<unknown>",

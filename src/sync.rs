@@ -1,8 +1,8 @@
 use crate::diag::abort;
 use crate::svc;
 use crate::thread;
-use core::cell::UnsafeCell;
 use core::arch::asm;
+use core::cell::UnsafeCell;
 
 const HANDLE_WAIT_MASK: u32 = 0x40000000;
 
@@ -47,7 +47,7 @@ fn clear_exclusive() {
 
 fn lock_impl(handle_ref: *mut u32) {
     let thr_handle = get_current_thread_handle();
-    
+
     let mut value = load_exclusive(handle_ref);
     loop {
         if value == svc::INVALID_HANDLE {
@@ -57,7 +57,9 @@ fn lock_impl(handle_ref: *mut u32) {
             }
             break;
         }
-        if (value & HANDLE_WAIT_MASK) == 0 && store_exclusive(handle_ref, value | HANDLE_WAIT_MASK) != 0 {
+        if (value & HANDLE_WAIT_MASK) == 0
+            && store_exclusive(handle_ref, value | HANDLE_WAIT_MASK) != 0
+        {
             value = load_exclusive(handle_ref);
             continue;
         }
@@ -77,7 +79,7 @@ fn lock_impl(handle_ref: *mut u32) {
 
 fn unlock_impl(handle_ref: *mut u32) {
     let thr_handle = get_current_thread_handle();
-    
+
     let mut value = load_exclusive(handle_ref);
     loop {
         if value != thr_handle {
@@ -126,7 +128,12 @@ pub struct Mutex {
 
 impl Mutex {
     pub const fn new(recursive: bool) -> Self {
-        Self { value: 0, is_recursive: recursive, counter: 0, thread_handle: 0 }
+        Self {
+            value: 0,
+            is_recursive: recursive,
+            counter: 0,
+            thread_handle: 0,
+        }
     }
 
     pub fn lock(&mut self) {
@@ -173,8 +180,7 @@ impl Mutex {
             }
             self.counter += 1;
             true
-        }
-        else {
+        } else {
             try_lock_impl(&mut self.value)
         }
     }
@@ -204,20 +210,19 @@ pub struct Locked<T> {
 
 impl<T> Locked<T> {
     pub const fn new(recursive: bool, t: T) -> Self {
-        Self { lock_cell: UnsafeCell::new(Mutex::new(recursive)), object_cell: UnsafeCell::new(t) }
+        Self {
+            lock_cell: UnsafeCell::new(Mutex::new(recursive)),
+            object_cell: UnsafeCell::new(t),
+        }
     }
 
     pub const fn get_lock(&self) -> &mut Mutex {
-        unsafe {
-            &mut *self.lock_cell.get()
-        }
+        unsafe { &mut *self.lock_cell.get() }
     }
 
     pub fn get(&self) -> &mut T {
         self.get_lock().lock();
-        let obj_ref = unsafe {
-            &mut *self.object_cell.get()
-        };
+        let obj_ref = unsafe { &mut *self.object_cell.get() };
         self.get_lock().unlock();
         obj_ref
     }
@@ -232,9 +237,7 @@ impl<T> Locked<T> {
 impl<T: Copy> Locked<T> {
     pub fn get_val(&self) -> T {
         self.get_lock().lock();
-        let obj_copy = unsafe {
-            *self.object_cell.get()
-        };
+        let obj_copy = unsafe { *self.object_cell.get() };
         self.get_lock().unlock();
         obj_copy
     }

@@ -1,11 +1,11 @@
-use crate::result::*;
-use crate::svc;
-use crate::mem::alloc;
-use crate::rrt0;
 use crate::ipc::sf;
+use crate::mem::alloc;
+use crate::result::*;
+use crate::rrt0;
 use crate::service;
 use crate::service::fatal;
 use crate::service::fatal::IService;
+use crate::svc;
 use core::mem;
 
 bit_enum! {
@@ -22,7 +22,12 @@ bit_enum! {
 impl AbortLevel {
     // When the desired level can't be processed (for instance, a panic due to errors allocating memory since it cannot allocate anymore) the next one is attempted, and so on
     // The last level, breaking via SVC, is guaranteed to work properly
-    const LEVEL_ORDER: &'static [AbortLevel] = &[AbortLevel::FatalThrow(), AbortLevel::Panic(), AbortLevel::ProcessExit(), AbortLevel::SvcBreak()];
+    const LEVEL_ORDER: &'static [AbortLevel] = &[
+        AbortLevel::FatalThrow(),
+        AbortLevel::Panic(),
+        AbortLevel::ProcessExit(),
+        AbortLevel::SvcBreak(),
+    ];
 
     #[inline]
     pub fn get_next_level(self) -> Option<Self> {
@@ -48,22 +53,27 @@ fn do_abort(level: AbortLevel, rc: ResultCode) {
     if level == AbortLevel::FatalThrow() {
         match service::new_service_object::<fatal::Service>() {
             Ok(fatal) => {
-                let _ = fatal.get().throw_fatal_with_policy(rc, fatal::FatalPolicy::ErrorScreen, sf::ProcessId::new());
-            },
+                let _ = fatal.get().throw_fatal_with_policy(
+                    rc,
+                    fatal::FatalPolicy::ErrorScreen,
+                    sf::ProcessId::new(),
+                );
+            }
             _ => {}
         };
-    }
-    else if level == AbortLevel::Panic() {
+    } else if level == AbortLevel::Panic() {
         let res: Result<()> = Err(rc);
         res.unwrap();
-    }
-    else if level == AbortLevel::ProcessExit() {
+    } else if level == AbortLevel::ProcessExit() {
         rrt0::exit(rc);
+    } else if level == AbortLevel::SvcBreak() {
+        svc::break_(
+            svc::BreakReason::Panic,
+            &rc as *const _ as *const u8,
+            mem::size_of_val(&rc),
+        );
     }
-    else if level == AbortLevel::SvcBreak() {
-        svc::break_(svc::BreakReason::Panic, &rc as *const _ as *const u8, mem::size_of_val(&rc));
-    }
-    
+
     // Note: this won't be reached if the abort succeeds
 }
 
@@ -75,8 +85,7 @@ pub fn abort(desired_level: AbortLevel, rc: ResultCode) -> ! {
 
         if let Some(next_level) = current_level.get_next_level() {
             current_level = next_level;
-        }
-        else {
+        } else {
             // This should never happen, since the last level is guaranteed to work
             unreachable!();
         }

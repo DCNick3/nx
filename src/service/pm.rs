@@ -1,12 +1,12 @@
-use crate::result::*;
-use crate::ipc::sf::{self, sm};
 use crate::ipc::client;
+use crate::ipc::sf::{self, sm};
+use crate::result::*;
 use crate::service;
 
 pub use crate::ipc::sf::pm::*;
 
 pub struct InformationInterface {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for InformationInterface {
@@ -44,7 +44,7 @@ impl service::IService for InformationInterface {
 }
 
 pub struct DebugMonitorInterface {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for DebugMonitorInterface {

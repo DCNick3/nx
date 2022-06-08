@@ -1,13 +1,13 @@
+use crate::ipc::sf;
+use crate::mem;
 use crate::result::*;
+use crate::service;
 use crate::service::applet;
 use crate::service::hid;
 use crate::service::hid::IAppletResource;
 use crate::service::hid::IHidServer;
-use crate::ipc::sf;
 use crate::svc;
-use crate::mem;
 use crate::vmem;
-use crate::service;
 use core::mem as cmem;
 
 pub mod rc;
@@ -57,7 +57,7 @@ pub struct TouchData {
     pub diameter_x: u32,
     pub diameter_y: u32,
     pub angle: u32,
-    pub pad_2: u32
+    pub pad_2: u32,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
@@ -66,7 +66,7 @@ pub struct TouchEntry {
     pub timestamp: u64,
     pub count: u64,
     pub touches: [TouchData; 16],
-    pub pad: u64
+    pub pad: u64,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
@@ -77,14 +77,14 @@ pub struct TouchState {
     pub latest_index: u64,
     pub max_index: u64,
     pub timestamp: u64,
-    pub entries: [TouchEntry; 17]
+    pub entries: [TouchEntry; 17],
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
 #[repr(C)]
 pub struct JoystickPosition {
     pub x: u32,
-    pub y: u32
+    pub y: u32,
 }
 
 bit_enum! {
@@ -103,7 +103,7 @@ pub struct ControllerStateEntry {
     pub button_state: u64,
     pub left_position: JoystickPosition,
     pub right_position: JoystickPosition,
-    pub connection_state: ConnectionState
+    pub connection_state: ConnectionState,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
@@ -113,20 +113,20 @@ pub struct ControllerState {
     pub entry_count: u64,
     pub latest_index: u64,
     pub max_index: u64,
-    pub entries: [ControllerStateEntry; 17]
+    pub entries: [ControllerStateEntry; 17],
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
 #[repr(C)]
 pub struct ControllerMacAddress {
-    pub address: [u8; 0x10]
+    pub address: [u8; 0x10],
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
 #[repr(C)]
 pub struct ControllerColor {
     pub body: u32,
-    pub buttons: u32
+    pub buttons: u32,
 }
 
 #[derive(Copy, Clone)]
@@ -149,7 +149,7 @@ pub struct ControllerData {
     pub main_state: ControllerState,
     pub unk: [u8; 0x2A78],
     pub mac_addresses: [ControllerMacAddress; 2],
-    pub unk_2: [u8; 0xE10]
+    pub unk_2: [u8; 0xE10],
 }
 
 #[derive(Copy, Clone)]
@@ -170,31 +170,31 @@ pub struct SharedMemoryData {
     pub unk_8: [u8; 0x800],
     pub controller_serials: [u8; 0x4000],
     pub controllers: [ControllerData; 10],
-    pub unk_9: [u8; 0x4600]
+    pub unk_9: [u8; 0x4600],
 }
 
 pub struct Player {
     controller: hid::ControllerId,
     data: *const ControllerData,
-    prev_button_state: u64
+    prev_button_state: u64,
 }
 
 impl Player {
     pub fn new(controller: hid::ControllerId, data: *const ControllerData) -> Self {
-        Self { controller, data, prev_button_state: 0 }
+        Self {
+            controller,
+            data,
+            prev_button_state: 0,
+        }
     }
 
     fn get_latest_state_entry(&self) -> *const ControllerStateEntry {
-        unsafe {
-            &(*self.data).main_state.entries[(*self.data).main_state.latest_index as usize]
-        }
+        unsafe { &(*self.data).main_state.entries[(*self.data).main_state.latest_index as usize] }
     }
 
     fn get_button_state(&self) -> u64 {
         let last_entry = self.get_latest_state_entry();
-        unsafe {
-            (*last_entry).button_state
-        }
+        unsafe { (*last_entry).button_state }
     }
 
     pub fn get_button_state_held(&mut self) -> Key {
@@ -228,7 +228,7 @@ pub struct InputContext {
     applet_resource: mem::Shared<dyn IAppletResource>,
     shared_mem_handle: svc::Handle,
     aruid: applet::AppletResourceUserId,
-    shared_mem_data: *const SharedMemoryData
+    shared_mem_data: *const SharedMemoryData,
 }
 
 macro_rules! set_all_controllers_mode_dual_impl {
@@ -243,49 +243,97 @@ macro_rules! set_all_controllers_mode_dual_impl {
 #[allow(unreachable_patterns)]
 fn get_index_for_controller(controller: hid::ControllerId) -> Result<usize> {
     match controller {
-        hid::ControllerId::Player1 | hid::ControllerId::Player2 | hid::ControllerId::Player3 | hid::ControllerId::Player4 | hid::ControllerId::Player5 | hid::ControllerId::Player6 | hid::ControllerId::Player7 | hid::ControllerId::Player8 => Ok(controller as usize),
+        hid::ControllerId::Player1
+        | hid::ControllerId::Player2
+        | hid::ControllerId::Player3
+        | hid::ControllerId::Player4
+        | hid::ControllerId::Player5
+        | hid::ControllerId::Player6
+        | hid::ControllerId::Player7
+        | hid::ControllerId::Player8 => Ok(controller as usize),
         hid::ControllerId::Handheld => Ok(8),
-        _ => rc::ResultInvalidControllerId::make_err()
+        _ => rc::ResultInvalidControllerId::make_err(),
     }
 }
 
 impl InputContext {
-    pub fn new(aruid: applet::AppletResourceUserId, supported_tags: hid::NpadStyleTag, controllers: &[hid::ControllerId]) -> Result<Self> {
+    pub fn new(
+        aruid: applet::AppletResourceUserId,
+        supported_tags: hid::NpadStyleTag,
+        controllers: &[hid::ControllerId],
+    ) -> Result<Self> {
         let hid_srv = service::new_service_object::<hid::HidServer>()?;
-        let applet_res = hid_srv.get().create_applet_resource(sf::ProcessId::from(aruid))?;
+        let applet_res = hid_srv
+            .get()
+            .create_applet_resource(sf::ProcessId::from(aruid))?;
         let shmem_handle = applet_res.get().get_shared_memory_handle()?;
         let shmem_size = cmem::size_of::<SharedMemoryData>();
         let shmem_address = vmem::allocate(shmem_size)?;
-        svc::map_shared_memory(shmem_handle.handle, shmem_address, shmem_size, svc::MemoryPermission::Read())?;
+        svc::map_shared_memory(
+            shmem_handle.handle,
+            shmem_address,
+            shmem_size,
+            svc::MemoryPermission::Read(),
+        )?;
         hid_srv.get().activate_npad(sf::ProcessId::from(aruid))?;
-        hid_srv.get().set_supported_npad_style_set(sf::ProcessId::from(aruid), supported_tags)?;
-        hid_srv.get().set_supported_npad_id_type(sf::ProcessId::from(aruid), sf::Buffer::from_array(controllers))?;
+        hid_srv
+            .get()
+            .set_supported_npad_style_set(sf::ProcessId::from(aruid), supported_tags)?;
+        hid_srv.get().set_supported_npad_id_type(
+            sf::ProcessId::from(aruid),
+            sf::Buffer::from_array(controllers),
+        )?;
         hid_srv.get().activate_npad(sf::ProcessId::from(aruid))?;
-        set_all_controllers_mode_dual_impl!(? hid_srv, sf::ProcessId::from(aruid), hid::ControllerId::Player1, hid::ControllerId::Player2, hid::ControllerId::Player3, hid::ControllerId::Player4, hid::ControllerId::Player5, hid::ControllerId::Player6, hid::ControllerId::Player7, hid::ControllerId::Player8, hid::ControllerId::Handheld);
-        Ok(Self { hid_service: hid_srv, applet_resource: applet_res, shared_mem_handle: shmem_handle.handle, aruid, shared_mem_data: shmem_address as *const SharedMemoryData })
+        set_all_controllers_mode_dual_impl!(
+            ?hid_srv,
+            sf::ProcessId::from(aruid),
+            hid::ControllerId::Player1,
+            hid::ControllerId::Player2,
+            hid::ControllerId::Player3,
+            hid::ControllerId::Player4,
+            hid::ControllerId::Player5,
+            hid::ControllerId::Player6,
+            hid::ControllerId::Player7,
+            hid::ControllerId::Player8,
+            hid::ControllerId::Handheld
+        );
+        Ok(Self {
+            hid_service: hid_srv,
+            applet_resource: applet_res,
+            shared_mem_handle: shmem_handle.handle,
+            aruid,
+            shared_mem_data: shmem_address as *const SharedMemoryData,
+        })
     }
 
     pub fn is_controller_connected(&mut self, controller: hid::ControllerId) -> bool {
         if let Ok(index) = get_index_for_controller(controller) {
             let controller_data = unsafe { &(*self.shared_mem_data).controllers[index] };
-            let last_entry = controller_data.main_state.entries[controller_data.main_state.latest_index as usize];
-            last_entry.connection_state.contains(ConnectionState::Connected())
-        }
-        else {
+            let last_entry = controller_data.main_state.entries
+                [controller_data.main_state.latest_index as usize];
+            last_entry
+                .connection_state
+                .contains(ConnectionState::Connected())
+        } else {
             false
         }
     }
 
     pub fn get_player(&mut self, controller: hid::ControllerId) -> Result<Player> {
         let index = get_index_for_controller(controller)?;
-        let controller_data: *const ControllerData = unsafe { &(*self.shared_mem_data).controllers[index] };
+        let controller_data: *const ControllerData =
+            unsafe { &(*self.shared_mem_data).controllers[index] };
         Ok(Player::new(controller, controller_data))
     }
 
     pub fn get_touch_data(&mut self, touch_index: u32) -> Result<TouchData> {
         unsafe {
-            let touch_entry: *const TouchEntry = &(*self.shared_mem_data).touch_state.entries[(*self.shared_mem_data).touch_state.latest_index as usize];
-            result_return_unless!((touch_index as u64) < (*touch_entry).count, rc::ResultInvalidTouchIndex);
+            let touch_entry: *const TouchEntry = &(*self.shared_mem_data).touch_state.entries
+                [(*self.shared_mem_data).touch_state.latest_index as usize];
+            result_return_unless!(
+                (touch_index as u64) < (*touch_entry).count,
+                rc::ResultInvalidTouchIndex
+            );
             Ok((*touch_entry).touches[touch_index as usize])
         }
     }
@@ -293,9 +341,28 @@ impl InputContext {
 
 impl Drop for InputContext {
     fn drop(&mut self) {
-        set_all_controllers_mode_dual_impl!(self.hid_service, sf::ProcessId::from(self.aruid), hid::ControllerId::Player1, hid::ControllerId::Player2, hid::ControllerId::Player3, hid::ControllerId::Player4, hid::ControllerId::Player5, hid::ControllerId::Player6, hid::ControllerId::Player7, hid::ControllerId::Player8, hid::ControllerId::Handheld);
-        let _ = self.hid_service.get().deactivate_npad(sf::ProcessId::from(self.aruid));
-        let _ = svc::unmap_shared_memory(self.shared_mem_handle, self.shared_mem_data as *mut u8, cmem::size_of::<SharedMemoryData>());
+        set_all_controllers_mode_dual_impl!(
+            self.hid_service,
+            sf::ProcessId::from(self.aruid),
+            hid::ControllerId::Player1,
+            hid::ControllerId::Player2,
+            hid::ControllerId::Player3,
+            hid::ControllerId::Player4,
+            hid::ControllerId::Player5,
+            hid::ControllerId::Player6,
+            hid::ControllerId::Player7,
+            hid::ControllerId::Player8,
+            hid::ControllerId::Handheld
+        );
+        let _ = self
+            .hid_service
+            .get()
+            .deactivate_npad(sf::ProcessId::from(self.aruid));
+        let _ = svc::unmap_shared_memory(
+            self.shared_mem_handle,
+            self.shared_mem_data as *mut u8,
+            cmem::size_of::<SharedMemoryData>(),
+        );
         let _ = svc::close_handle(self.shared_mem_handle);
     }
 }

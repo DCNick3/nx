@@ -1,14 +1,14 @@
-use crate::result::*;
 use crate::ipc;
-use crate::ipc::sf;
 use crate::ipc::client;
+use crate::ipc::sf;
+use crate::result::*;
 use crate::service;
 use crate::version;
 
 pub use crate::ipc::sf::sm::*;
 
 pub struct UserInterface {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for UserInterface {
@@ -24,10 +24,19 @@ impl IUserInterface for UserInterface {
         ipc_client_send_request_command!([self.session.object_info; 1] (name) => (service_handle: sf::MoveHandle))
     }
 
-    fn register_service(&mut self, name: ServiceName, is_light: bool, max_sessions: i32) -> Result<sf::MoveHandle> {
+    fn register_service(
+        &mut self,
+        name: ServiceName,
+        is_light: bool,
+        max_sessions: i32,
+    ) -> Result<sf::MoveHandle> {
         match self.session.object_info.protocol {
-            ipc::CommandProtocol::Cmif => ipc_client_send_request_command!([self.session.object_info; 2] (name, is_light, max_sessions) => (port_handle: sf::MoveHandle)),
-            ipc::CommandProtocol::Tipc => ipc_client_send_request_command!([self.session.object_info; 2] (name, max_sessions, is_light) => (port_handle: sf::MoveHandle))
+            ipc::CommandProtocol::Cmif => {
+                ipc_client_send_request_command!([self.session.object_info; 2] (name, is_light, max_sessions) => (port_handle: sf::MoveHandle))
+            }
+            ipc::CommandProtocol::Tipc => {
+                ipc_client_send_request_command!([self.session.object_info; 2] (name, max_sessions, is_light) => (port_handle: sf::MoveHandle))
+            }
         }
     }
 
@@ -39,15 +48,21 @@ impl IUserInterface for UserInterface {
         ipc_client_send_request_command!([self.session.object_info; 4] (process_id) => ())
     }
 
-    fn atmosphere_install_mitm(&mut self, name: ServiceName) -> Result<(sf::MoveHandle, sf::MoveHandle)> {
+    fn atmosphere_install_mitm(
+        &mut self,
+        name: ServiceName,
+    ) -> Result<(sf::MoveHandle, sf::MoveHandle)> {
         ipc_client_send_request_command!([self.session.object_info; 65000] (name) => (port_handle: sf::MoveHandle, query_handle: sf::MoveHandle))
     }
 
     fn atmosphere_uninstall_mitm(&mut self, name: ServiceName) -> Result<()> {
         ipc_client_send_request_command!([self.session.object_info; 65001] (name) => ())
     }
-    
-    fn atmosphere_acknowledge_mitm_session(&mut self, name: ServiceName) -> Result<(mitm::MitmProcessInfo, sf::MoveHandle)> {
+
+    fn atmosphere_acknowledge_mitm_session(
+        &mut self,
+        name: ServiceName,
+    ) -> Result<(mitm::MitmProcessInfo, sf::MoveHandle)> {
         ipc_client_send_request_command!([self.session.object_info; 65003] (name) => (info: mitm::MitmProcessInfo, session_handle: sf::MoveHandle))
     }
 
@@ -92,7 +107,7 @@ impl service::INamedPort for UserInterface {
     }
 
     fn post_initialize(&mut self) -> Result<()> {
-        if version::get_version() >= version::Version::new(12,0,0) {
+        if version::get_version() >= version::Version::new(12, 0, 0) {
             self.session.object_info.protocol = ipc::CommandProtocol::Tipc;
         }
 

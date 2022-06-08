@@ -1,14 +1,14 @@
-use crate::ipc::sf::sm;
-use crate::result::*;
-use crate::ipc::sf;
 use crate::ipc::client;
-use crate::service;
+use crate::ipc::sf;
+use crate::ipc::sf::sm;
 use crate::mem;
+use crate::result::*;
+use crate::service;
 
 pub use crate::ipc::sf::mii::*;
 
 pub struct DatabaseService {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for DatabaseService {
@@ -28,11 +28,20 @@ impl IDatabaseService for DatabaseService {
         ipc_client_send_request_command!([self.session.object_info; 2] (flag) => (count: u32))
     }
 
-    fn get_1(&mut self, flag: SourceFlag, out_char_infos: sf::OutMapAliasBuffer<CharInfo>) -> Result<u32> {
+    fn get_1(
+        &mut self,
+        flag: SourceFlag,
+        out_char_infos: sf::OutMapAliasBuffer<CharInfo>,
+    ) -> Result<u32> {
         ipc_client_send_request_command!([self.session.object_info; 4] (flag, out_char_infos) => (count: u32))
     }
 
-    fn build_random(&mut self, age: sf::EnumAsPrimitiveType<Age, u32>, gender: sf::EnumAsPrimitiveType<Gender, u32>, race: sf::EnumAsPrimitiveType<Race, u32>) -> Result<CharInfo> {
+    fn build_random(
+        &mut self,
+        age: sf::EnumAsPrimitiveType<Age, u32>,
+        gender: sf::EnumAsPrimitiveType<Gender, u32>,
+        race: sf::EnumAsPrimitiveType<Race, u32>,
+    ) -> Result<CharInfo> {
         ipc_client_send_request_command!([self.session.object_info; 6] (age, gender, race) => (char_info: CharInfo))
     }
 }
@@ -48,7 +57,7 @@ impl client::IClientObject for DatabaseService {
 }
 
 pub struct StaticService {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for StaticService {
@@ -56,7 +65,10 @@ impl sf::IObject for StaticService {
 }
 
 impl IStaticService for StaticService {
-    fn get_database_service(&mut self, key_code: SpecialKeyCode) -> Result<mem::Shared<dyn IDatabaseService>> {
+    fn get_database_service(
+        &mut self,
+        key_code: SpecialKeyCode,
+    ) -> Result<mem::Shared<dyn IDatabaseService>> {
         ipc_client_send_request_command!([self.session.object_info; 0] (key_code) => (database_service: mem::Shared<DatabaseService>))
     }
 }

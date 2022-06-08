@@ -10,12 +10,17 @@ pub struct ParcelHeader {
     pub payload_size: u32,
     pub payload_offset: u32,
     pub objects_size: u32,
-    pub objects_offset: u32
+    pub objects_offset: u32,
 }
 
 impl ParcelHeader {
     pub const fn new() -> Self {
-        Self { payload_size: 0, payload_offset: 0, objects_size: 0, objects_offset: 0 }
+        Self {
+            payload_size: 0,
+            payload_offset: 0,
+            objects_size: 0,
+            objects_offset: 0,
+        }
     }
 }
 
@@ -25,12 +30,15 @@ const PAYLOAD_SIZE: usize = 0x200;
 #[repr(C)]
 pub struct ParcelPayload {
     pub header: ParcelHeader,
-    pub payload: [u8; PAYLOAD_SIZE]
+    pub payload: [u8; PAYLOAD_SIZE],
 }
 
 impl ParcelPayload {
     pub const fn new() -> Self {
-        Self { header: ParcelHeader::new(), payload: [0; PAYLOAD_SIZE] }
+        Self {
+            header: ParcelHeader::new(),
+            payload: [0; PAYLOAD_SIZE],
+        }
     }
 }
 
@@ -48,19 +56,30 @@ pub struct ParcelData {
 pub struct Parcel {
     payload: ParcelPayload,
     read_offset: usize,
-    write_offset: usize
+    write_offset: usize,
 }
 
 impl Parcel {
     pub const fn new() -> Self {
-        Self { payload: ParcelPayload::new(), read_offset: 0, write_offset: 0 }
+        Self {
+            payload: ParcelPayload::new(),
+            read_offset: 0,
+            write_offset: 0,
+        }
     }
 
     pub fn read_raw_unaligned(&mut self, out_data: *mut u8, data_size: usize) -> Result<()> {
-        result_return_if!((self.read_offset + data_size) > PAYLOAD_SIZE, rc::ResultNotEnoughReadSpace);
+        result_return_if!(
+            (self.read_offset + data_size) > PAYLOAD_SIZE,
+            rc::ResultNotEnoughReadSpace
+        );
 
         unsafe {
-            ptr::copy((&mut self.payload.payload as *mut _ as *mut u8).add(self.read_offset), out_data, data_size);
+            ptr::copy(
+                (&mut self.payload.payload as *mut _ as *mut u8).add(self.read_offset),
+                out_data,
+                data_size,
+            );
         }
         self.read_offset += data_size;
         Ok(())
@@ -71,10 +90,17 @@ impl Parcel {
     }
 
     pub fn write_raw_unaligned(&mut self, data: *const u8, data_size: usize) -> Result<()> {
-        result_return_if!((self.write_offset + data_size) > PAYLOAD_SIZE, rc::ResultNotEnoughWriteSpace);
+        result_return_if!(
+            (self.write_offset + data_size) > PAYLOAD_SIZE,
+            rc::ResultNotEnoughWriteSpace
+        );
 
         unsafe {
-            ptr::copy(data, (&mut self.payload.payload as *mut _ as *mut u8).add(self.write_offset), data_size);
+            ptr::copy(
+                data,
+                (&mut self.payload.payload as *mut _ as *mut u8).add(self.write_offset),
+                data_size,
+            );
         }
         self.write_offset += data_size;
         Ok(())
@@ -82,9 +108,13 @@ impl Parcel {
 
     pub fn write_reserve_raw(&mut self, data_size: usize) -> Result<*mut u8> {
         let actual_size = (data_size + 3) & !3;
-        result_return_if!((self.write_offset + actual_size) > PAYLOAD_SIZE, rc::ResultNotEnoughWriteSpace);
+        result_return_if!(
+            (self.write_offset + actual_size) > PAYLOAD_SIZE,
+            rc::ResultNotEnoughWriteSpace
+        );
 
-        let buf = unsafe { (&mut self.payload.payload as *mut _ as *mut u8).add(self.write_offset) };
+        let buf =
+            unsafe { (&mut self.payload.payload as *mut _ as *mut u8).add(self.write_offset) };
         self.write_offset += actual_size;
         Ok(buf)
     }

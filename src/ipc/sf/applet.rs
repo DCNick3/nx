@@ -1,7 +1,5 @@
-
 use crate::ipc::sf;
 use crate::mem;
-
 
 pub type AppletResourceUserId = u64;
 
@@ -9,7 +7,7 @@ pub type AppletResourceUserId = u64;
 #[repr(C)]
 pub struct AppletAttribute {
     flag: u8,
-    reserved: [u8; 0x7F]
+    reserved: [u8; 0x7F],
 }
 const_assert!(core::mem::size_of::<AppletAttribute>() == 0x80);
 
@@ -18,7 +16,7 @@ const_assert!(core::mem::size_of::<AppletAttribute>() == 0x80);
 pub enum ScreenShotPermission {
     Inherit,
     Enable,
-    Disable
+    Disable,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -67,7 +65,7 @@ pub enum AppletId {
     AppletIOA = 0x3FB,
     AppletISTA = 0x3FC,
     AppletILA1 = 0x3FD,
-    AppletILA2 = 0x3FE
+    AppletILA2 = 0x3FE,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -77,7 +75,7 @@ pub enum LibraryAppletMode {
     Background,
     NoUi,
     BackgroundIndirectDisplay,
-    AllForegroundInitiallyHidden
+    AllForegroundInitiallyHidden,
 }
 
 ipc_sf_define_interface_trait! {

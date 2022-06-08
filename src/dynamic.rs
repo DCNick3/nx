@@ -15,7 +15,10 @@ pub fn relocate_with_dyn(base_address: *const u8, dynamic: *const elf::Dyn) -> R
         let rela_size = (*dynamic).find_value(elf::Tag::RelaSize)?;
         let rela_entry_size = (*dynamic).find_value(elf::Tag::RelaEntrySize)?;
         let rela_count = (*dynamic).find_value(elf::Tag::RelaCount)?;
-        result_return_unless!(rela_size == rela_entry_size * rela_count, rc::ResultRelaSizeMismatch);
+        result_return_unless!(
+            rela_size == rela_entry_size * rela_count,
+            rc::ResultRelaSizeMismatch
+        );
 
         let rela_base = base_address.offset(rela_offset as isize) as *const elf::Rela;
         for i in 0..rela_count {
@@ -23,10 +26,11 @@ pub fn relocate_with_dyn(base_address: *const u8, dynamic: *const elf::Dyn) -> R
             match (*rela).info.symbol.relocation_type {
                 elf::RelocationType::AArch64Relative => {
                     if (*rela).info.symbol.symbol == 0 {
-                        let relocation_offset = base_address.offset((*rela).offset as isize) as *mut *const u8;
+                        let relocation_offset =
+                            base_address.offset((*rela).offset as isize) as *mut *const u8;
                         *relocation_offset = base_address.offset((*rela).addend as isize);
                     }
-                },
+                }
                 _ => {}
             }
         }

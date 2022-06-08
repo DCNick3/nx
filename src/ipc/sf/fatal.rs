@@ -1,6 +1,5 @@
-use crate::result::*;
 use crate::ipc::sf;
-
+use crate::result::*;
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 #[repr(u32)]

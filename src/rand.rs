@@ -12,13 +12,13 @@ pub trait RandomGenerator {
 }
 
 use crate::ipc::sf;
+use crate::mem;
 use crate::service;
 use crate::service::spl;
 use crate::service::spl::IRandomInterface;
-use crate::mem;
 
 pub struct SplCsrngGenerator {
-    csrng: mem::Shared<dyn IRandomInterface>
+    csrng: mem::Shared<dyn IRandomInterface>,
 }
 
 impl SplCsrngGenerator {
@@ -30,6 +30,8 @@ impl SplCsrngGenerator {
 
 impl RandomGenerator for SplCsrngGenerator {
     fn random_bytes(&mut self, buf: *mut u8, size: usize) -> Result<()> {
-        self.csrng.get().generate_random_bytes(sf::Buffer::from_mut_ptr(buf, size))
+        self.csrng
+            .get()
+            .generate_random_bytes(sf::Buffer::from_mut_ptr(buf, size))
     }
 }

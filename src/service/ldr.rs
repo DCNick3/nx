@@ -1,13 +1,13 @@
+use crate::ipc::client;
+use crate::ipc::sf;
 use crate::ipc::sf::sm;
 use crate::result::*;
-use crate::ipc::sf;
-use crate::ipc::client;
 use crate::service;
 
 pub use crate::ipc::sf::ldr::*;
 
 pub struct ShellInterface {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for ShellInterface {
@@ -15,11 +15,20 @@ impl sf::IObject for ShellInterface {
 }
 
 impl IShellInterface for ShellInterface {
-    fn set_program_argument_deprecated(&mut self, program_id: u64, args_size: u32, args_buf: sf::InPointerBuffer<u8>) -> Result<()> {
+    fn set_program_argument_deprecated(
+        &mut self,
+        program_id: u64,
+        args_size: u32,
+        args_buf: sf::InPointerBuffer<u8>,
+    ) -> Result<()> {
         ipc_client_send_request_command!([self.session.object_info; 0] (program_id, args_size, args_buf) => ())
     }
 
-    fn set_program_argument(&mut self, program_id: u64, args_buf: sf::InPointerBuffer<u8>) -> Result<()> {
+    fn set_program_argument(
+        &mut self,
+        program_id: u64,
+        args_buf: sf::InPointerBuffer<u8>,
+    ) -> Result<()> {
         ipc_client_send_request_command!([self.session.object_info; 0] (program_id, args_buf) => ())
     }
 

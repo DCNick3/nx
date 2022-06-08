@@ -1,12 +1,12 @@
-use crate::result::*;
-use crate::ipc::sf::{self, sm};
 use crate::ipc::client;
+use crate::ipc::sf::{self, sm};
+use crate::result::*;
 use crate::service;
 
 pub use crate::ipc::sf::spl::*;
 
 pub struct RandomInterface {
-    session: sf::Session
+    session: sf::Session,
 }
 
 impl sf::IObject for RandomInterface {

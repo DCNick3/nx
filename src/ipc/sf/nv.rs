@@ -1,6 +1,4 @@
-
 use crate::ipc::sf;
-
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
 #[repr(u32)]
@@ -24,7 +22,7 @@ pub enum ErrorCode {
     CountMismatch = 16,
     SharedMemoryTooSmall = 0x1000,
     FileOperationFailed = 0x30003,
-    IoctlFailed = 0x3000F
+    IoctlFailed = 0x3000F,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -37,7 +35,7 @@ pub enum IoctlId {
     NvMapParam = 0xC00C0109,
     NvMapGetId = 0xC008010E,
 
-    NvHostCtrlSyncptWait = 0xC00C0016
+    NvHostCtrlSyncptWait = 0xC00C0016,
 }
 
 pub type Fd = u32;

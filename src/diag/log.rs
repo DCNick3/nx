@@ -1,8 +1,8 @@
+use crate::ipc::sf;
+use crate::mem;
+use crate::result::*;
 use crate::rrt0;
 use crate::thread;
-use crate::result::*;
-use crate::mem;
-use crate::ipc::sf;
 use alloc::string::String;
 
 pub type LogSeverity = logpacket::detail::LogSeverity;
@@ -13,11 +13,18 @@ pub struct LogMetadata {
     pub msg: String,
     pub file_name: &'static str,
     pub fn_name: &'static str,
-    pub line_number: u32
+    pub line_number: u32,
 }
 
 impl LogMetadata {
-    pub fn new(severity: LogSeverity, verbosity: bool, msg: String, file_name: &'static str, fn_name: &'static str, line_number: u32) -> Self {
+    pub fn new(
+        severity: LogSeverity,
+        verbosity: bool,
+        msg: String,
+        file_name: &'static str,
+        fn_name: &'static str,
+        line_number: u32,
+    ) -> Self {
         Self {
             severity,
             verbosity,
@@ -51,7 +58,17 @@ fn format_plain_string_log_impl(metadata: &LogMetadata, log_type: &str) -> Strin
         Ok(name) => name,
         _ => "<unknown>",
     };
-    format!("[ {} (severity: {}, verbosity: {}) from {} in thread {}, at {}:{} ] {}", log_type, severity_str, metadata.verbosity, metadata.fn_name, thread_name, metadata.file_name, metadata.line_number, metadata.msg)
+    format!(
+        "[ {} (severity: {}, verbosity: {}) from {} in thread {}, at {}:{} ] {}",
+        log_type,
+        severity_str,
+        metadata.verbosity,
+        metadata.fn_name,
+        thread_name,
+        metadata.file_name,
+        metadata.line_number,
+        metadata.msg
+    )
 }
 
 use crate::svc;
@@ -74,20 +91,24 @@ use crate::service::fsp::srv;
 use crate::service::fsp::srv::IFileSystemProxy;
 
 pub struct FsAccessLogLogger {
-    service: Result<mem::Shared<srv::FileSystemProxy>>
+    service: Result<mem::Shared<srv::FileSystemProxy>>,
 }
 
 impl Logger for FsAccessLogLogger {
     fn new() -> Self {
-        Self { service: service::new_service_object() }
+        Self {
+            service: service::new_service_object(),
+        }
     }
 
     fn log(&mut self, metadata: &LogMetadata) {
         let msg = format_plain_string_log_impl(metadata, "FsAccessLog");
         match self.service {
             Ok(ref mut fspsrv) => {
-                let _ = fspsrv.get().output_access_log_to_sd_card(sf::Buffer::from_array(msg.as_bytes()));
-            },
+                let _ = fspsrv
+                    .get()
+                    .output_access_log_to_sd_card(sf::Buffer::from_array(msg.as_bytes()));
+            }
             _ => {}
         }
     }
@@ -98,19 +119,17 @@ use crate::service::lm::ILogService;
 use crate::service::lm::ILogger;
 
 pub struct LmLogger {
-    logger: Option<mem::Shared<dyn ILogger>>
+    logger: Option<mem::Shared<dyn ILogger>>,
 }
 
 impl Logger for LmLogger {
     fn new() -> Self {
         let logger = match service::new_service_object::<lm::LogService>() {
-            Ok(log_srv) => {
-                match log_srv.get().open_logger(sf::ProcessId::new()) {
-                    Ok(logger_obj) => Some(logger_obj),
-                    Err(_) => None
-                }
+            Ok(log_srv) => match log_srv.get().open_logger(sf::ProcessId::new()) {
+                Ok(logger_obj) => Some(logger_obj),
+                Err(_) => None,
             },
-            Err(_) => None
+            Err(_) => None,
         };
 
         Self { logger }
@@ -132,10 +151,10 @@ impl Logger for LmLogger {
             log_packet.set_file_name(String::from(metadata.file_name));
             log_packet.set_function_name(String::from(metadata.fn_name));
             log_packet.set_line_number(metadata.line_number);
-    
+
             let mod_name = match rrt0::get_module_name().path.get_string() {
                 Ok(name) => name,
-                Err(_) => String::from("aarch64-switch-rs (invalid module name)")
+                Err(_) => String::from("aarch64-switch-rs (invalid module name)"),
             };
             log_packet.set_module_name(mod_name);
 

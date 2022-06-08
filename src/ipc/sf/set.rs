@@ -1,8 +1,6 @@
-
 use crate::ipc::sf;
 use crate::ipc::sf::mii;
 use crate::util;
-
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
 #[repr(C)]
@@ -18,7 +16,7 @@ pub struct FirmwareVersion {
     pub platform: util::CString<0x20>,
     pub version_hash: util::CString<0x40>,
     pub display_version: util::CString<0x18>,
-    pub display_title: util::CString<0x80>
+    pub display_title: util::CString<0x80>,
 }
 const_assert!(core::mem::size_of::<FirmwareVersion>() == 0x100);
 

@@ -1,5 +1,5 @@
-use crate::{result::*, util};
 use crate::ipc::sf;
+use crate::{result::*, util};
 
 use crate::mem;
 
@@ -31,7 +31,7 @@ pub struct DeviceFilter {
     pub device_protocol: u8,
     pub interface_class: super::ClassCode,
     pub interface_subclass: u8,
-    pub interface_protocol: u8
+    pub interface_protocol: u8,
 }
 const_assert!(core::mem::size_of::<DeviceFilter>() == 0x10);
 
@@ -40,7 +40,7 @@ const_assert!(core::mem::size_of::<DeviceFilter>() == 0x10);
 pub enum InterfaceAvailableEventId {
     Unk0 = 0,
     Unk1 = 1,
-    Unk2 = 2
+    Unk2 = 2,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -58,7 +58,7 @@ pub struct InterfaceProfile {
     pub output_ss_endpoint_companion_descriptors: [super::SsEndPointCompanionDescriptor; 15],
     pub pad_4: [u8; 0x6],
     pub input_ss_endpoint_companion_descriptors: [super::SsEndPointCompanionDescriptor; 15],
-    pub pad_5: [u8; 0x3]
+    pub pad_5: [u8; 0x3],
 }
 const_assert!(core::mem::size_of::<InterfaceProfile>() == 0x1B8);
 
@@ -71,7 +71,7 @@ pub struct InterfaceInfo {
     pub device_descriptor: super::DeviceDescriptor,
     pub config_descriptor: super::ConfigDescriptor,
     pub pad: [u8; 0x5],
-    pub unk_maybe_timestamp: u64
+    pub unk_maybe_timestamp: u64,
 }
 const_assert!(core::mem::size_of::<InterfaceInfo>() == 0x70);
 
@@ -79,7 +79,7 @@ const_assert!(core::mem::size_of::<InterfaceInfo>() == 0x70);
 #[repr(C)]
 pub struct InterfaceQueryOutput {
     pub profile: InterfaceProfile,
-    pub info: InterfaceInfo
+    pub info: InterfaceInfo,
 }
 const_assert!(core::mem::size_of::<InterfaceQueryOutput>() == 0x228);
 
@@ -90,7 +90,7 @@ pub struct XferReport {
     pub result: ResultCode,
     pub requested_size: u32,
     pub transferred_size: u32,
-    pub unk: [u8; 8]
+    pub unk: [u8; 8],
 }
 const_assert!(core::mem::size_of::<XferReport>() == 0x18);
 

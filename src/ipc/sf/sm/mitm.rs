@@ -6,7 +6,7 @@ pub struct MitmProcessInfo {
     pub process_id: u64,
     pub program_id: u64,
     pub keys_held: input::Key,
-    pub override_flags: u64
+    pub override_flags: u64,
 }
 
 pub mod rc;

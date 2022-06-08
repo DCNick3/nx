@@ -1,10 +1,8 @@
-
 use crate::ipc::sf;
-use crate::mem;
-use crate::util;
 use crate::ipc::sf::applet;
 use crate::ipc::sf::dispdrv;
-
+use crate::mem;
+use crate::util;
 
 pub type DisplayName = util::CString<0x40>;
 
@@ -23,7 +21,7 @@ pub type LayerId = u64;
 #[repr(u32)]
 pub enum DisplayServiceMode {
     User = 0,
-    Privileged = 1
+    Privileged = 1,
 }
 
 ipc_sf_define_interface_trait! {
